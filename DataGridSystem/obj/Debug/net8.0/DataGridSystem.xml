@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DataGridSystem</name>
+    </assembly>
+    <members>
+        <member name="T:DataGridSystem.Migrations.InitialCreate">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataGridSystem.Migrations.FixNullColumns">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.FixNullColumns.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.FixNullColumns.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.FixNullColumns.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataGridSystem.Migrations.FixRoles">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.FixRoles.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.FixRoles.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.FixRoles.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataGridSystem.Migrations.UpdateCustomPropertyNullable">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.UpdateCustomPropertyNullable.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.UpdateCustomPropertyNullable.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.UpdateCustomPropertyNullable.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataGridSystem.Migrations.AllowNullCustomProperty">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.AllowNullCustomProperty.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.AllowNullCustomProperty.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.AllowNullCustomProperty.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataGridSystem.Migrations.AdminUser">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.AdminUser.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.AdminUser.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataGridSystem.Migrations.AdminUser.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

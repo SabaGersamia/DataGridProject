@@ -1,0 +1,146 @@
+.data-grid-details-page {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* Header */
+  .header {
+    background-color: #f5f5f5;
+    padding: 15px;
+    text-align: center;
+  }
+  
+  .header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  /* Grid Details Section */
+  .grid-details {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .grid-details h3 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .grid-details h4 {
+    font-size: 1.2rem;
+    color: #555;
+    margin-top: 20px;
+  }
+  
+  /* Edit Grid Form */
+  .edit-grid-form {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .edit-grid-form input {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+    flex-grow: 1;
+  }
+  
+  .edit-grid-form button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .edit-grid-form button[type="button"] {
+    background-color: #f44336;
+  }
+  
+  .edit-grid-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  .edit-grid-form button[type="button"]:hover {
+    background-color: #d32f2f;
+  }
+  
+  /* Grid Columns & Rows */
+  .grid-columns, .grid-rows {
+    margin-top: 20px;
+  }
+  
+  .grid-columns ul, .grid-rows ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .grid-columns li, .grid-rows li {
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .grid-columns li span, .grid-rows li span {
+    font-size: 1rem;
+    color: #444;
+  }
+  
+  /* Button Styles */
+  .edit-button, .delete-button {
+    padding: 8px 16px;
+    margin: 10px 5px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .edit-button {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .edit-button:hover {
+    background-color: #45a049;
+  }
+  
+  .delete-button {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .delete-button:hover {
+    background-color: #e53935;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .grid-details {
+      padding: 15px;
+    }
+  
+    .edit-grid-form input, .edit-grid-form button {
+      font-size: 0.9rem;
+    }
+  
+    .grid-columns li, .grid-rows li {
+      font-size: 0.9rem;
+    }
+  
+    .edit-button, .delete-button {
+      font-size: 0.9rem;
+    }
+  }
+  
