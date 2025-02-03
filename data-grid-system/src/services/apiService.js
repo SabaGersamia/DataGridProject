@@ -29,39 +29,20 @@ api.interceptors.request.use(
 export const login = async (username, password) => {
   try {
     const response = await axios.post(`${API_URL}/auth/login`, { userName: username, password });
-    
+
     if (response.data?.token) {
       const token = response.data.token;
       localStorage.setItem('authToken', token);
-
-      // Decode the JWT token to extract user information
-      const decodedUser = jwtDecode(token);
-
-      console.log("Decoded JWT Token:", decodedUser);
-
-      const user = {
-        username: decodedUser["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"],
-        role: decodedUser["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
-      };
-
-      return user;
+      return token;
     }
-    
+
     throw new Error('No token received');
   } catch (error) {
-    if (error.response) {
-      console.error('Login error:', error.response.data);
-      const errorMessage = error.response.data.message || 'Invalid username or password.';
-      throw new Error(errorMessage);
-    } else if (error.request) {
-      console.error('Network error: No response received');
-      throw new Error('Network error: No response received from the server.');
-    } else {
-      console.error('Error during setup:', error.message);
-      throw new Error('An unexpected error occurred.');
-    }
+    console.error('Login error:', error);
+    throw error;
   }
 };
+
 
 // Example GET request to fetch data
 export const fetchData = async () => {
@@ -113,11 +94,23 @@ export const updateGrid = async (gridId, updatedData) => {
 
 // Delete a grid
 export const deleteGrid = async (gridId) => {
+  if (!gridId) {
+    console.error("Error: gridId is undefined");
+    return;
+  }
+
   try {
-    const response = await api.delete(`/DataGrids/${gridId}`);
+    const token = localStorage.getItem("authToken"); // Ensure auth token is sent
+    console.log("Attempting API call to delete grid with ID:", gridId);
+
+    const response = await api.delete(`/DataGrids/${gridId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log("Grid deleted successfully from API:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Error deleting grid:', error.response || error.message);
+    console.error("Error deleting grid:", error);
     throw error;
   }
 };

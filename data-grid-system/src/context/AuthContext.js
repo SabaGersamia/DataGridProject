@@ -6,16 +6,23 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Decode token and set user on app load
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (token) {
+
+    if (token && typeof token === 'string') {
       try {
         const decodedUser = jwtDecode(token);
+        console.log("Decoded User on Load:", decodedUser);
+
         const username = decodedUser["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
-        setUser({ username });
+        const role = decodedUser["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+        if (username && role) {
+          setUser({ username, role });
+        }
       } catch (error) {
         console.error('Error decoding token:', error);
+        localStorage.removeItem('authToken');
       }
     }
   }, []);
@@ -24,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     console.log("Logged in user:", userData);
-  };  
+  };
 
   const logout = () => {
     setUser(null);

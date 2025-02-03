@@ -56,7 +56,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Identity configuration
-builder.Services.AddIdentity<User, IdentityRole>()
+builder.Services.AddIdentity<User, Role>() // Change IdentityRole to Role
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -109,18 +109,22 @@ static async Task SeedData(IApplicationBuilder app)
     using (var scope = app.ApplicationServices.CreateScope())
     {
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>(); // Use custom Role type
 
+        // Define roles to seed
         var roles = new[] { "Administrator", "User" };
-        foreach (var role in roles)
+
+        // Create roles if they do not exist
+        foreach (var roleName in roles)
         {
-            var roleExist = await roleManager.RoleExistsAsync(role);
+            var roleExist = await roleManager.RoleExistsAsync(roleName);
             if (!roleExist)
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                await roleManager.CreateAsync(new Role { Name = roleName });
             }
         }
 
+        // Seed Admin user if not already created
         if (await userManager.FindByNameAsync("admin") == null)
         {
             var admin = new User
@@ -136,6 +140,7 @@ static async Task SeedData(IApplicationBuilder app)
             }
         }
 
+        // Seed regular User if not already created
         if (await userManager.FindByNameAsync("user") == null)
         {
             var user = new User

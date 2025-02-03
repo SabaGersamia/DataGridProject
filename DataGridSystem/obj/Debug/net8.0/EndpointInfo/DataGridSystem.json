@@ -272,17 +272,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DataGrid"
+                "$ref": "#/components/schemas/DataGridDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/DataGrid"
+                "$ref": "#/components/schemas/DataGridDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/DataGrid"
+                "$ref": "#/components/schemas/DataGridDto"
               }
             }
           }
@@ -335,17 +335,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DataGrid"
+                "$ref": "#/components/schemas/DataGridDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/DataGrid"
+                "$ref": "#/components/schemas/DataGridDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/DataGrid"
+                "$ref": "#/components/schemas/DataGridDto"
               }
             }
           }
@@ -368,79 +368,6 @@
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/DataGrids/{id}/permissions": {
-      "post": {
-        "tags": [
-          "DataGrids"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "type": "string"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/DataGrids/{id}/permissions/{userId}": {
-      "delete": {
-        "tags": [
-          "DataGrids"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -694,6 +621,24 @@
         },
         "additionalProperties": false
       },
+      "ColumnDto": {
+        "type": "object",
+        "properties": {
+          "columnId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "dataType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CopyPasteRequest": {
         "type": "object",
         "properties": {
@@ -717,11 +662,6 @@
         "additionalProperties": false
       },
       "DataGrid": {
-        "required": [
-          "createdAt",
-          "name",
-          "ownerId"
-        ],
         "type": "object",
         "properties": {
           "gridId": {
@@ -729,27 +669,18 @@
             "format": "int32"
           },
           "name": {
-            "maxLength": 100,
-            "minLength": 0,
-            "type": "string"
-          },
-          "ownerId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
             "type": "string",
-            "format": "date-time"
+            "nullable": true
           },
           "isPublic": {
             "type": "boolean"
           },
-          "userPermissions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserGridPermission"
-            },
-            "nullable": true
+          "owner": {
+            "$ref": "#/components/schemas/User"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           },
           "columns": {
             "type": "array",
@@ -762,6 +693,37 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Row"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DataGridDto": {
+        "type": "object",
+        "properties": {
+          "gridId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColumnDto"
+            },
+            "nullable": true
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RowDto"
             },
             "nullable": true
           }
@@ -812,11 +774,31 @@
             "format": "int32"
           },
           "values": {
-            "type": "string",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "dataGrid": {
             "$ref": "#/components/schemas/DataGrid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RowDto": {
+        "type": "object",
+        "properties": {
+          "rowId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -884,26 +866,6 @@
           "customProperty": {
             "type": "string",
             "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "UserGridPermission": {
-        "type": "object",
-        "properties": {
-          "gridId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "grid": {
-            "$ref": "#/components/schemas/DataGrid"
-          },
-          "userId": {
-            "type": "string",
-            "nullable": true
-          },
-          "user": {
-            "$ref": "#/components/schemas/User"
           }
         },
         "additionalProperties": false

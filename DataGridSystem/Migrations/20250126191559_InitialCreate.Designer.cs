@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataGridSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241219121713_AdminUser")]
-    partial class AdminUser
+    [Migration("20250126191559_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,36 +25,7 @@ namespace DataGridSystem.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("DataGridSystem.Models.Column", b =>
-                {
-                    b.Property<int>("ColumnId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ColumnId"));
-
-                    b.Property<int>("DataGridGridId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DataType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("GridId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ColumnId");
-
-                    b.HasIndex("DataGridGridId");
-
-                    b.ToTable("Columns", (string)null);
-                });
-
-            modelBuilder.Entity("DataGridSystem.Models.DataGrid", b =>
+            modelBuilder.Entity("DataGrid", b =>
                 {
                     b.Property<int>("GridId")
                         .ValueGeneratedOnAdd()
@@ -70,15 +41,69 @@ namespace DataGridSystem.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("OwnerId")
-                        .HasColumnType("int");
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("GridId");
 
+                    b.HasIndex("OwnerId");
+
                     b.ToTable("Grids", (string)null);
+                });
+
+            modelBuilder.Entity("DataGridSystem.Models.Column", b =>
+                {
+                    b.Property<int>("ColumnId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ColumnId"));
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GridId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ColumnId");
+
+                    b.HasIndex("GridId");
+
+                    b.ToTable("Columns");
+                });
+
+            modelBuilder.Entity("DataGridSystem.Models.Role", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
             modelBuilder.Entity("DataGridSystem.Models.Row", b =>
@@ -89,21 +114,18 @@ namespace DataGridSystem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RowId"));
 
-                    b.Property<int>("DataGridGridId")
-                        .HasColumnType("int");
-
                     b.Property<int>("GridId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Values")
+                    b.PrimitiveCollection<string>("Values")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RowId");
 
-                    b.HasIndex("DataGridGridId");
+                    b.HasIndex("GridId");
 
-                    b.ToTable("Rows", (string)null);
+                    b.ToTable("Rows");
                 });
 
             modelBuilder.Entity("DataGridSystem.Models.User", b =>
@@ -186,34 +208,7 @@ namespace DataGridSystem.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserGridPermissions");
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL");
-
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("UserGridPermission");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -322,11 +317,20 @@ namespace DataGridSystem.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("DataGrid", b =>
+                {
+                    b.HasOne("DataGridSystem.Models.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId");
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("DataGridSystem.Models.Column", b =>
                 {
-                    b.HasOne("DataGridSystem.Models.DataGrid", "DataGrid")
+                    b.HasOne("DataGrid", "DataGrid")
                         .WithMany("Columns")
-                        .HasForeignKey("DataGridGridId")
+                        .HasForeignKey("GridId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -335,9 +339,9 @@ namespace DataGridSystem.Migrations
 
             modelBuilder.Entity("DataGridSystem.Models.Row", b =>
                 {
-                    b.HasOne("DataGridSystem.Models.DataGrid", "DataGrid")
+                    b.HasOne("DataGrid", "DataGrid")
                         .WithMany("Rows")
-                        .HasForeignKey("DataGridGridId")
+                        .HasForeignKey("GridId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -346,8 +350,8 @@ namespace DataGridSystem.Migrations
 
             modelBuilder.Entity("DataGridSystem.Models.UserGridPermission", b =>
                 {
-                    b.HasOne("DataGridSystem.Models.DataGrid", "Grid")
-                        .WithMany("UserPermissions")
+                    b.HasOne("DataGrid", "Grid")
+                        .WithMany()
                         .HasForeignKey("GridId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -365,7 +369,7 @@ namespace DataGridSystem.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("DataGridSystem.Models.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -392,7 +396,7 @@ namespace DataGridSystem.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("DataGridSystem.Models.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -414,13 +418,11 @@ namespace DataGridSystem.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DataGridSystem.Models.DataGrid", b =>
+            modelBuilder.Entity("DataGrid", b =>
                 {
                     b.Navigation("Columns");
 
                     b.Navigation("Rows");
-
-                    b.Navigation("UserPermissions");
                 });
 #pragma warning restore 612, 618
         }

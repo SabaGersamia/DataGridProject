@@ -6,6 +6,7 @@ import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import UserDashboard from './pages/UserDashboard';
+import AdminDashboard from './pages/AdminDashboard'; // Assuming AdminDashboard exists
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -17,14 +18,23 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/UserDashboard" element={<UserDashboard />} />
-        
+
         {/* Protected route for User */}
         <Route 
           path="/user/dashboard" 
           element={
-            <ProtectedRoute role="user">
+            <ProtectedRoute requiredRole="user">
               <UserDashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Protected route for Admin */}
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
             </ProtectedRoute>
           } 
         />

@@ -5,7 +5,6 @@ import GridView from './GridView';
 import '../assets/css/userDashboard.css';
 import logo from '../assets/imgs/centaurea.jpg';
 
-
 const UserDashboard = () => {
   const [grids, setGrids] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +19,7 @@ const UserDashboard = () => {
     const fetchGrids = async () => {
       try {
         const data = await getGrids();
-        setGrids(data);
+        console.log("Fetched Grids:", data);
       } catch (err) {
         setError('Failed to fetch data grids. Please try again later.');
         console.error(err);
@@ -29,7 +28,7 @@ const UserDashboard = () => {
       }
     };
     fetchGrids();
-  }, []);
+  }, []);  
 
   const handleCreateGrid = async (e) => {
     e.preventDefault();
@@ -46,14 +45,24 @@ const UserDashboard = () => {
   };
 
   const handleDeleteGrid = async (gridId) => {
-    try {
-      await deleteGrid(gridId);
-      setGrids(grids.filter((grid) => grid.id !== gridId));
-    } catch (err) {
-      setError('Error deleting grid. Please try again.');
-      console.error(err);
+    console.log("Attempting to delete grid with ID:", gridId);
+    
+    if (!gridId) {
+      console.error("Error: gridId is undefined in handleDeleteGrid");
+      return;
     }
-  };
+  
+    try {
+      const response = await deleteGrid(gridId);
+      console.log("Grid deleted successfully:", response);
+  
+      // Remove the grid from the UI after successful deletion
+      setGrids((prevGrids) => prevGrids.filter((grid) => grid.gridId !== gridId));
+    } catch (error) {
+      console.error("Error deleting grid:", error);
+    }
+  };  
+  
 
   const handleEditGrid = async (e) => {
     e.preventDefault();
@@ -91,6 +100,7 @@ const UserDashboard = () => {
             <ul className="nav-links">
               <li><Link to="/" className="nav-link">Home</Link></li>
               <li><Link to="#about" className="nav-link">About</Link></li>
+              
               <li><Link to="#contact" className="nav-link">Contact</Link></li>
             </ul>
           </nav>
@@ -165,34 +175,39 @@ const UserDashboard = () => {
               <div className="data-grids-list">
                 <h3>Your Data Grids</h3>
                 <ul>
-                  {grids.map((grid) => (
-                    <li key={grid.id}>
-                      <div className="grid-item">
-                        <span>{grid.name}</span>
-                        <button
-                          className="view-grid-button"
-                          onClick={() => handleViewGrid(grid)}
-                        >
-                          View
-                        </button>
-                        <button
-                          className="edit-grid-button"
-                          onClick={() => {
-                            setEditingGrid(grid);
-                            setEditedGridName(grid.name);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="delete-grid-button"
-                          onClick={() => handleDeleteGrid(grid.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                  {grids.map((grid) => {
+                    return (
+                      <li key={grid.id}>
+                        <div className="grid-item">
+                          <span>{grid.name}</span>
+                          <button
+                            className="view-grid-button"
+                            onClick={() => handleViewGrid(grid)}
+                          >
+                            View
+                          </button>
+                          <button
+                            className="edit-grid-button"
+                            onClick={() => {
+                              setEditingGrid(grid);
+                              setEditedGridName(grid.name);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="delete-grid-button"
+                            onClick={() => {
+                              console.log("Grid in delete handler:", grid);
+                              handleDeleteGrid(grid.gridId);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             </>
