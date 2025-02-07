@@ -62,11 +62,20 @@ namespace DataGridSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ExternalCollectionUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("GridId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("Options")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ValidationPattern")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ColumnId");

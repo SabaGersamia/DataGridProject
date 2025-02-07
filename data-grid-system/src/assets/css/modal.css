@@ -1,0 +1,61 @@
+/* Modal overlay to center the popup */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal content styling */
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 800px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Table container */
+.grid-table-container {
+  overflow-x: auto;
+  max-height: 400px;
+  margin-top: 10px;
+}
+
+/* Table styling */
+.grid-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.grid-table th, .grid-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.grid-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+/* Close button */
+.close-modal {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background: #d9534f;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.close-modal:hover {
+  background: #c9302c;
+}

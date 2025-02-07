@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
+import { getColumns, getRows } from '../services/apiService';
 import { jwtDecode } from 'jwt-decode';
 import '../assets/css/loginPage.css';
 import logo from '../assets/imgs/centaurea.jpg';

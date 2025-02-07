@@ -37,8 +37,8 @@ namespace DataGridSystem.Controllers
 
             var dataGrids = await _context.DataGrids
                     .Where(d => d.Owner.UserName == userIdClaim || d.IsPublic)
-                    .Include(d => d.Rows)
-                    .Include(d => d.Columns)
+                    .Include(d => d.Rows)  // Eagerly load Rows related to DataGrids
+                    .Include(d => d.Columns) // Optionally, if you want to load Columns as well
                     .ToListAsync();
 
             var dataGridDTOs = dataGrids.Adapt<List<DataGridDto>>();
@@ -52,8 +52,8 @@ namespace DataGridSystem.Controllers
         public async Task<IActionResult> GetDataGrid(int id)
         {
             var dataGrid = await _context.DataGrids
-                .Include(d => d.Rows)
-                .Include(d => d.Columns)
+                .Include(d => d.Rows)  // Eagerly load Rows related to DataGrids
+                .Include(d => d.Columns) // Optionally, if you want to load Columns as well
                 .SingleOrDefaultAsync(d => d.GridId == id);
 
             if (dataGrid == null)
@@ -82,38 +82,19 @@ namespace DataGridSystem.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier); // Or use another claim type if needed
             if (string.IsNullOrEmpty(userIdClaim))
                 return Unauthorized("Invalid User ID.");
 
+            // Find the user from the UserManager using the user ID
             var currentUser = await _userManager.FindByNameAsync(userIdClaim);
             if (currentUser == null)
                 return Unauthorized("User not found.");
 
-            // ✅ Create DataGrid Object
-            var dataGrid = new DataGrid
-            {
-                Name = dataGridDto.Name,
-                IsPublic = dataGridDto.IsPublic,
-                Owner = currentUser,
-                Columns = dataGridDto.Columns.Select(c => new Column
-                {
-                    Name = c.Name,
-                    DataType = c.DataType
-                }).ToList()
-            };
 
+            var dataGrid = dataGridDto.Adapt<DataGrid>();
+            dataGrid.Owner = currentUser;
             _context.DataGrids.Add(dataGrid);
-            await _context.SaveChangesAsync(); // ✅ Save here so GridId is generated
-
-            // ✅ Add Rows AFTER saving dataGrid to ensure it has a valid GridId
-            var rows = dataGridDto.Rows.Select(rowDto => new Row
-            {
-                GridId = dataGrid.GridId, // ✅ Reference correct Grid ID
-                Values = rowDto.Values
-            }).ToList();
-
-            _context.Rows.AddRange(rows); // ✅ Add all rows at once
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetDataGrid), new { id = dataGrid.GridId }, dataGridDto);
@@ -167,6 +148,8 @@ namespace DataGridSystem.Controllers
             {
                 return Unauthorized("Invalid User ID.");
             }
+
+            Console.WriteLine($"Logged-in User ID: {userIdClaim}");
 
             var dataGrid = await _context.DataGrids
                 .Include(d => d.Owner) // Ensure owner is included

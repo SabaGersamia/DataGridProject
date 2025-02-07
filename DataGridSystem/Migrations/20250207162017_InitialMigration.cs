@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataGridSystem.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -186,7 +186,10 @@ namespace DataGridSystem.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    GridId = table.Column<int>(type: "int", nullable: false)
+                    GridId = table.Column<int>(type: "int", nullable: false),
+                    ValidationPattern = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Options = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExternalCollectionUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

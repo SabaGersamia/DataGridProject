@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../services/apiService';
+import "../assets/css/modal.css";
+import ColumnModal from './ColumnModal';
 
 const ColumnManager = ({ gridId }) => {
   const [columns, setColumns] = useState([]);
-  const [newColumn, setNewColumn] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch columns
   useEffect(() => {
@@ -19,13 +21,11 @@ const ColumnManager = ({ gridId }) => {
   }, [gridId]);
 
   // Add column
-  const handleAddColumn = async () => {
+  const handleAddColumn = async (columnData) => {
     try {
-      const response = await apiService.post(`/grids/${gridId}/columns`, {
-        name: newColumn,
-      });
+      const response = await apiService.post(`/grids/${gridId}/columns`, columnData);
       setColumns((prev) => [...prev, response.data]);
-      setNewColumn('');
+      setIsModalOpen(false); // Close modal after saving
     } catch (error) {
       console.error('Error adding column:', error);
     }
@@ -47,18 +47,20 @@ const ColumnManager = ({ gridId }) => {
       <ul>
         {columns.map((col) => (
           <li key={col.id}>
-            {col.name}{' '}
+            {col.name} ({col.type}){' '}
             <button onClick={() => handleDeleteColumn(col.id)}>Delete</button>
           </li>
         ))}
       </ul>
-      <input
-        type="text"
-        value={newColumn}
-        onChange={(e) => setNewColumn(e.target.value)}
-        placeholder="New column name"
+
+      <button onClick={() => setIsModalOpen(true)}>Add Column</button>
+
+      {/* Column Modal */}
+      <ColumnModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleAddColumn}
       />
-      <button onClick={handleAddColumn}>Add Column</button>
     </div>
   );
 };

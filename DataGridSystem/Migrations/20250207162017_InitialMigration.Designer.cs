@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataGridSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250126191559_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250207162017_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,11 +65,20 @@ namespace DataGridSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ExternalCollectionUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("GridId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("Options")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ValidationPattern")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ColumnId");

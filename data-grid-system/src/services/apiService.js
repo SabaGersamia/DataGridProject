@@ -100,7 +100,7 @@ export const deleteGrid = async (gridId) => {
   }
 
   try {
-    const token = localStorage.getItem("authToken"); // Ensure auth token is sent
+    const token = localStorage.getItem("authToken");
     console.log("Attempting API call to delete grid with ID:", gridId);
 
     const response = await api.delete(`/DataGrids/${gridId}`, {

@@ -4,16 +4,16 @@
         <name>DataGridSystem</name>
     </assembly>
     <members>
-        <member name="T:DataGridSystem.Migrations.InitialCreate">
+        <member name="T:DataGridSystem.Migrations.InitialMigration">
             <inheritdoc />
         </member>
-        <member name="M:DataGridSystem.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:DataGridSystem.Migrations.InitialMigration.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:DataGridSystem.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+        <member name="M:DataGridSystem.Migrations.InitialMigration.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
-        <member name="M:DataGridSystem.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+        <member name="M:DataGridSystem.Migrations.InitialMigration.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
     </members>
