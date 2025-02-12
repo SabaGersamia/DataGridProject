@@ -6,11 +6,11 @@ namespace DataGridSystem.Models
     {
         public int ColumnId { get; set; }
         public string Name { get; set; }
-        public string DataType { get; set; }// "String", "Numeric", "Email",
+        public string DataType { get; set; }
         public int GridId { get; set; }
         public DataGrid DataGrid { get; set; }
-        public string? ValidationPattern { get; set; } // For Regexp validation
-        public List<string>? Options { get; set; } // For Single-Select & Multi-Select options
-        public string? ExternalCollectionUrl { get; set; } // For External Collection API URL
+        public string? ValidationPattern { get; set; }
+        public List<string>? Options { get; set; }
+        public string? ExternalCollectionUrl { get; set; }
     }
 }

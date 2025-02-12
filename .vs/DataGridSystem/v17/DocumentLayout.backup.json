@@ -34,8 +34,7 @@
               "RelativeToolTip": "DataGridSystem\\Controllers\\ColumnsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAKYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-07T10:55:38.636Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-07T10:55:38.636Z"
             },
             {
               "$type": "Document",
@@ -45,7 +44,7 @@
               "RelativeDocumentMoniker": "DataGridSystem\\Models\\Column.cs",
               "ToolTip": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Models\\Column.cs",
               "RelativeToolTip": "DataGridSystem\\Models\\Column.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-07T10:53:39.471Z",
               "EditorCaption": ""
