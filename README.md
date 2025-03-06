@@ -10,7 +10,6 @@ Welcome to the Dynamic Data Grid System v2.0! This project is a flexible and int
 - **Rows**: Add, update, and delete rows within grids.
 - **Permissions**: Set custom permissions for users on specific grids.
 - **Batch Operations**: Support for batch updating and deleting rows.
-- **Responsive Design**: The app adapts to different screen sizes, ensuring a smooth experience on both desktop and mobile.
 
 ## Tech Stack
 
