@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataGridSystem.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -158,7 +158,7 @@ namespace DataGridSystem.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Grids",
+                name: "DataGrids",
                 columns: table => new
                 {
                     GridId = table.Column<int>(type: "int", nullable: false)
@@ -170,9 +170,9 @@ namespace DataGridSystem.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Grids", x => x.GridId);
+                    table.PrimaryKey("PK_DataGrids", x => x.GridId);
                     table.ForeignKey(
-                        name: "FK_Grids_AspNetUsers_OwnerId",
+                        name: "FK_DataGrids_AspNetUsers_OwnerId",
                         column: x => x.OwnerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
@@ -187,6 +187,7 @@ namespace DataGridSystem.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GridId = table.Column<int>(type: "int", nullable: false),
+                    DataGridGridId = table.Column<int>(type: "int", nullable: false),
                     ValidationPattern = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Options = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ExternalCollectionUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -195,9 +196,35 @@ namespace DataGridSystem.Migrations
                 {
                     table.PrimaryKey("PK_Columns", x => x.ColumnId);
                     table.ForeignKey(
-                        name: "FK_Columns_Grids_GridId",
+                        name: "FK_Columns_DataGrids_DataGridGridId",
+                        column: x => x.DataGridGridId,
+                        principalTable: "DataGrids",
+                        principalColumn: "GridId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataGridPermissions",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    GridId = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    PermissionType = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataGridPermissions", x => new { x.GridId, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_DataGridPermissions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DataGridPermissions_DataGrids_GridId",
                         column: x => x.GridId,
-                        principalTable: "Grids",
+                        principalTable: "DataGrids",
                         principalColumn: "GridId",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -209,39 +236,16 @@ namespace DataGridSystem.Migrations
                     RowId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GridId = table.Column<int>(type: "int", nullable: false),
-                    Values = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Values = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DataGridGridId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Rows", x => x.RowId);
                     table.ForeignKey(
-                        name: "FK_Rows_Grids_GridId",
-                        column: x => x.GridId,
-                        principalTable: "Grids",
-                        principalColumn: "GridId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserGridPermission",
-                columns: table => new
-                {
-                    GridId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserGridPermission", x => new { x.GridId, x.UserId });
-                    table.ForeignKey(
-                        name: "FK_UserGridPermission_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserGridPermission_Grids_GridId",
-                        column: x => x.GridId,
-                        principalTable: "Grids",
+                        name: "FK_Rows_DataGrids_DataGridGridId",
+                        column: x => x.DataGridGridId,
+                        principalTable: "DataGrids",
                         principalColumn: "GridId",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -286,24 +290,24 @@ namespace DataGridSystem.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Columns_GridId",
+                name: "IX_Columns_DataGridGridId",
                 table: "Columns",
-                column: "GridId");
+                column: "DataGridGridId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Grids_OwnerId",
-                table: "Grids",
+                name: "IX_DataGridPermissions_UserId",
+                table: "DataGridPermissions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataGrids_OwnerId",
+                table: "DataGrids",
                 column: "OwnerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rows_GridId",
+                name: "IX_Rows_DataGridGridId",
                 table: "Rows",
-                column: "GridId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserGridPermission_UserId",
-                table: "UserGridPermission",
-                column: "UserId");
+                column: "DataGridGridId");
         }
 
         /// <inheritdoc />
@@ -328,16 +332,16 @@ namespace DataGridSystem.Migrations
                 name: "Columns");
 
             migrationBuilder.DropTable(
-                name: "Rows");
+                name: "DataGridPermissions");
 
             migrationBuilder.DropTable(
-                name: "UserGridPermission");
+                name: "Rows");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Grids");
+                name: "DataGrids");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

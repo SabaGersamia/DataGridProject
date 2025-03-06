@@ -11,7 +11,6 @@ namespace DataGridSystem.Data
     {
         public static async Task Initialize(IServiceProvider serviceProvider, UserManager<User> userManager, RoleManager<Role> roleManager)
         {
-            // Define role names to be used in the app
             var roleNames = new[] { "Administrator", "User" };
 
             // Check and create roles if they don't exist

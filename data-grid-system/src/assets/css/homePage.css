@@ -98,10 +98,9 @@ body, h1, h2, h3, p, ul {
   gap: 15px;
 }
 
-/* Hero Section */
 .hero-section {
   background: linear-gradient(120deg, #f4f4f4, #e0e0e0);
-  min-height: 400px; /* Ensures the hero section takes up sufficient space */
+  min-height: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -148,10 +147,9 @@ body, h1, h2, h3, p, ul {
 
 .cta-button:hover {
   background-color: #0033a0;
-  transform: scale(1.05); /* Slight zoom effect */
+  transform: scale(1.05);
 }
 
-/* Features Section */
 .features-section {
   padding: 40px 20px;
   background-color: #f9f9f9;
@@ -200,7 +198,6 @@ body, h1, h2, h3, p, ul {
   margin-top: 40px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .header {
     flex-wrap: wrap;

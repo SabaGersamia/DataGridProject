@@ -11,6 +11,8 @@ namespace DataGridSystem.DTOs
         public List<ColumnDto> Columns { get; set; } = new List<ColumnDto>();
 
         public List<RowDto> Rows { get; set; } = new List<RowDto>();
+
+        public List<string?> AllowedUsers { get; set; } = new List<string>();
     }
 
     public class ColumnDto

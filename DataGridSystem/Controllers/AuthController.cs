@@ -110,7 +110,6 @@ namespace DataGridSystem.Controllers
             return Ok("Hi, you're on public property.");
         }
 
-        // Helper method to get the current authenticated user
         private User GetCurrentUser()
         {
             var identity = User.Identity as ClaimsIdentity;

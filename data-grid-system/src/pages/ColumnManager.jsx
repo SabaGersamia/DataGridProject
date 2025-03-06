@@ -25,7 +25,7 @@ const ColumnManager = ({ gridId }) => {
     try {
       const response = await apiService.post(`/grids/${gridId}/columns`, columnData);
       setColumns((prev) => [...prev, response.data]);
-      setIsModalOpen(false); // Close modal after saving
+      setIsModalOpen(false);
     } catch (error) {
       console.error('Error adding column:', error);
     }

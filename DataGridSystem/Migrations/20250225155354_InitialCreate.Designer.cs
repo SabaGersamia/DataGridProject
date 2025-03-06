@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataGridSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250207162017_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20250225155354_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,7 +50,29 @@ namespace DataGridSystem.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Grids", (string)null);
+                    b.ToTable("DataGrids");
+                });
+
+            modelBuilder.Entity("DataGridPermission", b =>
+                {
+                    b.Property<int>("GridId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PermissionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("GridId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DataGridPermissions");
                 });
 
             modelBuilder.Entity("DataGridSystem.Models.Column", b =>
@@ -60,6 +82,9 @@ namespace DataGridSystem.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ColumnId"));
+
+                    b.Property<int>("DataGridGridId")
+                        .HasColumnType("int");
 
                     b.Property<string>("DataType")
                         .IsRequired()
@@ -83,7 +108,7 @@ namespace DataGridSystem.Migrations
 
                     b.HasKey("ColumnId");
 
-                    b.HasIndex("GridId");
+                    b.HasIndex("DataGridGridId");
 
                     b.ToTable("Columns");
                 });
@@ -123,6 +148,9 @@ namespace DataGridSystem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RowId"));
 
+                    b.Property<int>("DataGridGridId")
+                        .HasColumnType("int");
+
                     b.Property<int>("GridId")
                         .HasColumnType("int");
 
@@ -132,7 +160,7 @@ namespace DataGridSystem.Migrations
 
                     b.HasKey("RowId");
 
-                    b.HasIndex("GridId");
+                    b.HasIndex("DataGridGridId");
 
                     b.ToTable("Rows");
                 });
@@ -203,21 +231,6 @@ namespace DataGridSystem.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("DataGridSystem.Models.UserGridPermission", b =>
-                {
-                    b.Property<int>("GridId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("GridId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserGridPermission");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -335,11 +348,30 @@ namespace DataGridSystem.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("DataGridPermission", b =>
+                {
+                    b.HasOne("DataGrid", "DataGrid")
+                        .WithMany("DataGridPermissions")
+                        .HasForeignKey("GridId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataGridSystem.Models.User", "User")
+                        .WithMany("DataGridPermissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DataGrid");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DataGridSystem.Models.Column", b =>
                 {
                     b.HasOne("DataGrid", "DataGrid")
                         .WithMany("Columns")
-                        .HasForeignKey("GridId")
+                        .HasForeignKey("DataGridGridId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -350,30 +382,11 @@ namespace DataGridSystem.Migrations
                 {
                     b.HasOne("DataGrid", "DataGrid")
                         .WithMany("Rows")
-                        .HasForeignKey("GridId")
+                        .HasForeignKey("DataGridGridId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("DataGrid");
-                });
-
-            modelBuilder.Entity("DataGridSystem.Models.UserGridPermission", b =>
-                {
-                    b.HasOne("DataGrid", "Grid")
-                        .WithMany()
-                        .HasForeignKey("GridId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DataGridSystem.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Grid");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -431,7 +444,14 @@ namespace DataGridSystem.Migrations
                 {
                     b.Navigation("Columns");
 
+                    b.Navigation("DataGridPermissions");
+
                     b.Navigation("Rows");
+                });
+
+            modelBuilder.Entity("DataGridSystem.Models.User", b =>
+                {
+                    b.Navigation("DataGridPermissions");
                 });
 #pragma warning restore 612, 618
         }

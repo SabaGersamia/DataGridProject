@@ -184,6 +184,27 @@
   },
   {
     "ContainingType": "DataGridSystem.Controllers.DataGridsController",
+    "Method": "DeleteMultipleRows",
+    "RelativePath": "api/DataGrids/{gridId}/rows/batch-delete",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "gridId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "rowIds",
+        "Type": "System.Collections.Generic.List\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DataGridSystem.Controllers.DataGridsController",
     "Method": "GetDataGrid",
     "RelativePath": "api/DataGrids/{id}",
     "HttpMethod": "GET",
@@ -325,22 +346,6 @@
       {
         "Name": "rowIds",
         "Type": "System.Int32[]",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "DataGridSystem.Controllers.RowsController",
-    "Method": "CopyPasteRows",
-    "RelativePath": "api/Rows/copy-paste",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "DataGridSystem.Controllers.CopyPasteRequest",
         "IsRequired": true
       }
     ],

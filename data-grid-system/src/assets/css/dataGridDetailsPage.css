@@ -77,7 +77,6 @@
     background-color: #d32f2f;
   }
   
-  /* Grid Columns & Rows */
   .grid-columns, .grid-rows {
     margin-top: 20px;
   }
@@ -125,7 +124,6 @@
     background-color: #e53935;
   }
   
-  /* Responsive Design */
   @media (max-width: 768px) {
     .grid-details {
       padding: 15px;

@@ -14,12 +14,18 @@ const HomePage = () => {
   };
 
   const handleDashboardNavigation = () => {
-    if (user) {
-      navigate('/user/dashboard');
-    } else {
+    console.log("User data:", user);
+  
+    if (!user) {
       navigate('/login');
+    } else if (user.role?.toLowerCase() === 'administrator') {
+      console.log("Redirecting to Admin Dashboard");
+      navigate('/admin/dashboard'); 
+    } else {
+      console.log("Redirecting to User Dashboard");
+      navigate('/user/dashboard');
     }
-  };
+  };  
 
   return (
     <div className="home-page">

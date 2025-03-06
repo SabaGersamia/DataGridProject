@@ -1,8 +1,6 @@
 ﻿using DataGridSystem.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
-using System.Reflection.Emit;
 
 namespace DataGridSystem.Data
 {
@@ -11,6 +9,7 @@ namespace DataGridSystem.Data
         public DbSet<DataGrid> DataGrids { get; set; }
         public DbSet<Column> Columns { get; set; }
         public DbSet<Row> Rows { get; set; }
+        public DbSet<DataGridPermission> DataGridPermissions { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -18,24 +17,18 @@ namespace DataGridSystem.Data
         {
             base.OnModelCreating(builder);
 
-           
-            // Table name mapping
-            builder.Entity<DataGrid>().ToTable("Grids");
+            builder.Entity<DataGrid>()
+                .HasMany(d => d.DataGridPermissions)
+                .WithOne(p => p.DataGrid)
+                .HasForeignKey(p => p.GridId);
 
-            builder.Entity<Column>()
-                      .HasOne(c => c.DataGrid)
-                      .WithMany(d => d.Columns)
-                      .HasForeignKey(c => c.GridId);
+            builder.Entity<User>()
+                .HasMany(u => u.DataGridPermissions)
+                .WithOne(p => p.User)
+                .HasForeignKey(p => p.UserId);
 
-            builder.Entity<Row>()
-                .HasOne(r => r.DataGrid)
-                .WithMany(d => d.Rows)
-                .HasForeignKey(r => r.GridId);
-
-            // Composite primary key for UserGridPermission (if you're still using it)
-            builder.Entity<UserGridPermission>()
-                .HasKey(ugp => new { ugp.GridId, ugp.UserId });
-
+            builder.Entity<DataGridPermission>()
+                .HasKey(p => new { p.GridId, p.UserId });
         }
     }
 }

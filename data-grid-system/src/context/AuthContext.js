@@ -28,9 +28,30 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    console.log("Logged in user:", userData);
+    if (!userData || !userData.token || typeof userData.token !== 'string') {
+      console.error("Invalid token received:", userData);
+      return;
+    }
+
+    try {
+      const decodedUser = jwtDecode(userData.token);
+      console.log("Decoded JWT Token:", decodedUser);
+
+      const username = decodedUser["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+      const role = decodedUser["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+      if (username && role) {
+        const user = { username, role };
+        setUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('authToken', userData.token);
+        console.log("Logged in user:", user);
+      } else {
+        console.error("Invalid decoded JWT structure:", decodedUser);
+      }
+    } catch (error) {
+      console.error("Error decoding token on login:", error);
+    }
   };
 
   const logout = () => {

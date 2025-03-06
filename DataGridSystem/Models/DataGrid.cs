@@ -13,4 +13,6 @@ public class DataGrid
 
     public List<Column> Columns { get; set; }
     public List<Row> Rows { get; set; }
+
+    public List<DataGridPermission> DataGridPermissions { get; set; } = new();
 }

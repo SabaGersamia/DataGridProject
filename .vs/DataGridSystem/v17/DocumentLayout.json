@@ -1,18 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\",
+  "WorkspaceRootPath": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|c:\\users\\gersa\\desktop\\datagridsystem\\datagridsystem\\datagridsystem\\models\\column.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|solutionrelative:datagridsystem\\models\\column.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|c:\\users\\gersa\\desktop\\datagridsystem\\datagridsystem\\datagridsystem\\controllers\\columnscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|solutionrelative:datagridsystem\\controllers\\columnscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|c:\\users\\gersa\\desktop\\datagridsystem\\datagridsystem\\datagridsystem\\controllers\\datagridscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|c:\\users\\gersa\\onedrive\\desktop\\datagridsystem\\datagridsystem\\datagridsystem\\controllers\\datagridscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|solutionrelative:datagridsystem\\controllers\\datagridscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|c:\\users\\gersa\\onedrive\\desktop\\datagridsystem\\datagridsystem\\datagridsystem\\dtos\\datagriddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|solutionrelative:datagridsystem\\dtos\\datagriddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|c:\\users\\gersa\\onedrive\\desktop\\datagridsystem\\datagridsystem\\datagridsystem\\models\\column.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3127B17E-1346-4C63-816A-590971B56E5A}|DataGridSystem\\DataGridSystem.csproj|solutionrelative:datagridsystem\\models\\column.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,44 +22,44 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "ColumnsController.cs",
-              "DocumentMoniker": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Controllers\\ColumnsController.cs",
-              "RelativeDocumentMoniker": "DataGridSystem\\Controllers\\ColumnsController.cs",
-              "ToolTip": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Controllers\\ColumnsController.cs",
-              "RelativeToolTip": "DataGridSystem\\Controllers\\ColumnsController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAKYAAAAAAAAAAAAAAA==",
+              "Title": "DataGridDto.cs",
+              "DocumentMoniker": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\DTOs\\DataGridDto.cs",
+              "RelativeDocumentMoniker": "DataGridSystem\\DTOs\\DataGridDto.cs",
+              "ToolTip": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\DTOs\\DataGridDto.cs",
+              "RelativeToolTip": "DataGridSystem\\DTOs\\DataGridDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-07T10:55:38.636Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Column.cs",
-              "DocumentMoniker": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Models\\Column.cs",
-              "RelativeDocumentMoniker": "DataGridSystem\\Models\\Column.cs",
-              "ToolTip": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Models\\Column.cs",
-              "RelativeToolTip": "DataGridSystem\\Models\\Column.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-07T10:53:39.471Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-05T09:08:42.12Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "DataGridsController.cs",
-              "DocumentMoniker": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Controllers\\DataGridsController.cs",
-              "RelativeDocumentMoniker": "DataGridSystem\\Controllers\\DataGridsController.cs",
-              "ToolTip": "C:\\Users\\gersa\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Controllers\\DataGridsController.cs",
-              "RelativeToolTip": "DataGridSystem\\Controllers\\DataGridsController.cs",
-              "ViewState": "AgIAAIYAAAAAAAAAAAAUwK0AAAAJAAAAAAAAAA==",
+              "Title": "Column.cs",
+              "DocumentMoniker": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Models\\Column.cs",
+              "RelativeDocumentMoniker": "DataGridSystem\\Models\\Column.cs",
+              "ToolTip": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Models\\Column.cs",
+              "RelativeToolTip": "DataGridSystem\\Models\\Column.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-27T09:32:52.189Z"
+              "WhenOpened": "2025-02-07T10:53:39.471Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DataGridsController.cs",
+              "DocumentMoniker": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Controllers\\DataGridsController.cs",
+              "RelativeDocumentMoniker": "DataGridSystem\\Controllers\\DataGridsController.cs",
+              "ToolTip": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\Controllers\\DataGridsController.cs",
+              "RelativeToolTip": "DataGridSystem\\Controllers\\DataGridsController.cs",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAAAKYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-27T09:32:52.189Z",
+              "EditorCaption": ""
             }
           ]
         }

@@ -56,7 +56,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Identity configuration
-builder.Services.AddIdentity<User, Role>() // Change IdentityRole to Role
+builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -109,7 +109,7 @@ static async Task SeedData(IApplicationBuilder app)
     using (var scope = app.ApplicationServices.CreateScope())
     {
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>(); // Use custom Role type
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
 
         // Define roles to seed
         var roles = new[] { "Administrator", "User" };

@@ -120,7 +120,6 @@ namespace DataGridSystem.Controllers
             return NoContent();
         }
 
-        // Helper function to validate column types
         private bool ValidateColumnType(Column column, out string errorMessage)
         {
             errorMessage = "";
