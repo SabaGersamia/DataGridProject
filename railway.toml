@@ -1,0 +1,9 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "./DataGridSystem/Dockerfile"
+
+[deploy]
+startCommand = "./DataGridSystem"
+restartPolicyType = "always"
+heathcheckPath = "/health"
+

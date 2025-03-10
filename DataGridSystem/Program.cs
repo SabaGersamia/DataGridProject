@@ -11,6 +11,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
+
+builder.Services.AddHealthChecks();
+
 builder.Services.AddControllers();
 
 // Allow frontend to access backend
@@ -82,6 +87,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<JwtTokenService>();
 
 var app = builder.Build();
+
+app.UseHealthChecks("/health");
 
 app.UseCors("AllowFrontend");
 
