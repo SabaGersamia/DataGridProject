@@ -8386,11 +8386,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\DataGridSystem.csproj",
+      "projectUniqueName": "C:\\Users\\gersa\\OneDrive\\Desktop\\Apps\\DataGridSystem\\DataGridSystem\\DataGridSystem.csproj",
       "projectName": "DataGridSystem",
-      "projectPath": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\DataGridSystem.csproj",
+      "projectPath": "C:\\Users\\gersa\\OneDrive\\Desktop\\Apps\\DataGridSystem\\DataGridSystem\\DataGridSystem.csproj",
       "packagesPath": "C:\\Users\\gersa\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\gersa\\OneDrive\\Desktop\\DataGridSystem\\DataGridSystem\\DataGridSystem\\obj\\",
+      "outputPath": "C:\\Users\\gersa\\OneDrive\\Desktop\\Apps\\DataGridSystem\\DataGridSystem\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

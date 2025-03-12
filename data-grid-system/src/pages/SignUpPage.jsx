@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import '../assets/css/signUpPage.css';
 import logo from '../assets/imgs/centaurea.jpg';
 
@@ -11,6 +12,9 @@ const SignUpPage = () => {
     confirmPassword: '',
   });
 
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -19,13 +23,24 @@ const SignUpPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-    console.log('Form submitted:', formData);
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/register', formData);
+      setSuccess('User registered successfully! ✅');
+      console.log('✅ Response:', response.data);
+    } catch (err) {
+      setError(err.response?.data || 'Registration failed');
+      console.error('❌ Error:', err.response || err);
+    }
   };
 
   return (
@@ -48,6 +63,8 @@ const SignUpPage = () => {
       <main className="sign-up-form-container">
         <div className="sign-up-form">
           <h2>Create Account</h2>
+          {error && <p className="error-message">{error}</p>}
+          {success && <p className="success-message">{success}</p>}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="username">Username:</label>
