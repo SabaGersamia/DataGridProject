@@ -10,23 +10,24 @@ Welcome to the Dynamic Data Grid System v2.0! This project is a flexible and int
 - **Rows**: Add, update, and delete rows within grids.
 - **Permissions**: Set custom permissions for users on specific grids.
 - **Batch Operations**: Support for batch updating and deleting rows.
+- **Docker Support** – Easily run the system in a containerized environment 
 
 ## Tech Stack
 
-- **Frontend**: React.js, Axios, React Router, CSS
-- **Backend**: .NET 8 Web API
-- **Authentication**: JWT, Bearer Token Authentication
-- **Database**: SQL (Tables for Columns, Grids, Rows)
+- 🖥 **Frontend:** React.js, Axios, React Router, CSS  
+- 🛠 **Backend:** .NET 8 Web API  
+- 🔑 **Authentication:** JWT, Bearer Token Authentication  
+- 🗄 **Database:** PostgreSQL (Previously MSSQL)  
+- 📦 **Containerization:** Docker  
 
-## Contributing
+## Access the application
 
-We welcome contributions to the Dynamic Data Grid System! To contribute:
+Ensure Docker is installed and running
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes and commit them (`git commit -am 'Add new feature'`).
-4. Push to your branch (`git push origin feature-branch`).
-5. Open a pull request to the `main` branch.
+1. Build and start the project using Docker Compose.
+2. docker-compose up --build.
+3. Frontend: http://localhost:3000.
+4. Backend API: http://localhost:8080/swagger/index.html.
 
 ## Contact
 
