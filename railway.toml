@@ -1,8 +1,0 @@
-[build]
-builder = "dockerfile"
-dockerfilePath = "./Dockerfile"
-
-[deploy]
-startCommand = "dotnet DataGridSystem.dll"
-restartPolicyType = "always"
-heathcheckPath = "/health"

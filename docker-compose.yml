@@ -1,0 +1,50 @@
+version: '3.4'
+
+services:
+  frontend:
+    build:
+      context: ./data-grid-system
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./DataGridSystem
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - postgres
+    # networks:
+    #   - datagridsystem_network
+    # command: ["sh", "-c", "dotnet ef migrations add InitialCreate && dotnet ef database update && dotnet DataGridSystem.dll"]
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: saba
+      POSTGRES_DB: DataGridDB
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # networks:
+    #   - datagridsystem_network
+      
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  datagridsystem_network:
+    driver: bridge

@@ -17,15 +17,26 @@ namespace DataGridSystem.Data
         {
             base.OnModelCreating(builder);
 
+            // Table naming for PostgreSQL case-sensitivity
+            builder.Entity<DataGrid>().ToTable("DataGrids");
+            builder.Entity<Column>().ToTable("Columns");
+            builder.Entity<Row>().ToTable("Rows");
+            builder.Entity<DataGridPermission>().ToTable("DataGridPermissions");
+            builder.Entity<Role>().ToTable("AspNetRoles");
+            builder.Entity<User>().ToTable("AspNetUsers");
+
+            // Relationships
             builder.Entity<DataGrid>()
                 .HasMany(d => d.DataGridPermissions)
                 .WithOne(p => p.DataGrid)
-                .HasForeignKey(p => p.GridId);
+                .HasForeignKey(p => p.GridId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<User>()
                 .HasMany(u => u.DataGridPermissions)
                 .WithOne(p => p.User)
-                .HasForeignKey(p => p.UserId);
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<DataGridPermission>()
                 .HasKey(p => new { p.GridId, p.UserId });
