@@ -24,7 +24,7 @@ services:
       - postgres
     # networks:
     #   - datagridsystem_network
-    # command: ["sh", "-c", "dotnet ef migrations add InitialCreate && dotnet ef database update && dotnet DataGridSystem.dll"]
+    command: ["/bin/sh", "/app/check-migrations-and-start.sh"]
 
   postgres:
     image: postgres:latest

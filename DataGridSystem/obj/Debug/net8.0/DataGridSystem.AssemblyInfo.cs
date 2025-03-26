@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DataGridSystem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+928491f0a9af5a4334a592653310a77919a66788")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a5d4a777d0322768ca39da20a7bceda9740f20cc")]
 [assembly: System.Reflection.AssemblyProductAttribute("DataGridSystem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DataGridSystem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

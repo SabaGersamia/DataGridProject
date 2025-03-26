@@ -1,12 +1,11 @@
 {
   "Version": 1,
-  "Hash": "BzDYjdNpQS3P/Qc30YMz0b9KBaAXp4mbdTw+W4t0rFI=",
+  "Hash": "h1PE2GziyjPe7GIzrez9XoPYnTbnTSVdGJmj5whovtc=",
   "Source": "DataGridSystem",
   "BasePath": "_content/DataGridSystem",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "Assets": []
 }

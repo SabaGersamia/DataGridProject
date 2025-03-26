@@ -18,7 +18,6 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const token = await login(username, password);
-      console.log("API Response (Token):", token);
   
       if (!token || typeof token !== 'string') {
         throw new Error("Invalid token received from API");
@@ -28,7 +27,6 @@ const LoginPage = () => {
   
       // Decode JWT to extract user details
       const decodedUser = jwtDecode(token);
-      console.log("Decoded JWT Token:", decodedUser);
   
       const decodedUsername = decodedUser["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
       const role = decodedUser["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];

@@ -22,9 +22,13 @@ RUN dotnet build -c Release
 # Publish the application to the /app/publish directory
 RUN dotnet publish -c Release -o /app/publish
 
+COPY check-migrations-and-start.sh /app/
+
 # Set environment variables for development
 ENV ASPNETCORE_ENVIRONMENT=Development
 ENV DOTNET_USE_POLLING_FILE_WATCHER=1
+
+RUN chmod +x /app/check-migrations-and-start.sh
 
 # Apply migrations to PostgreSQL (Optional, if needed)
 # RUN dotnet ef database update

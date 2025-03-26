@@ -13,7 +13,9 @@ const HomePage = () => {
     navigate('/login');
   };
 
-  const handleDashboardNavigation = () => {
+  const handleDashboardNavigation = (e) => {
+    e.preventDefault(); // Prevent the Link from navigating immediately
+    
     console.log("User data:", user);
   
     if (!user) {
@@ -25,7 +27,7 @@ const HomePage = () => {
       console.log("Redirecting to User Dashboard");
       navigate('/user/dashboard');
     }
-  };  
+};
 
   return (
     <div className="home-page">
@@ -37,14 +39,13 @@ const HomePage = () => {
           <nav className="navigation">
             <ul className="nav-links">
               <li><Link to="/" className="nav-link">Home</Link></li>
-              <li><Link to="/about" className="nav-link">About</Link></li>
               <li>
                 <Link 
-                  to={user ? "/user/dashboard" : "/login"} 
+                  to={!user ? '/login' : user.role?.toLowerCase() === 'administrator' ? '/admin/dashboard' : '/user/dashboard'}
                   className="nav-link">
                   Dashboard
                 </Link>
-              </li>     
+              </li>
               <li><Link to="/contact" className="nav-link">Contact</Link></li>
             </ul>
           </nav>
