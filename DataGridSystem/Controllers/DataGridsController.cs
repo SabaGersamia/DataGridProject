@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using DataGridSystem.Data;
 using DataGridSystem.DTOs;
 using DataGridSystem.Models;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Mapster;
-using Microsoft.Extensions.Logging;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+
 
 namespace DataGridSystem.Controllers
 {
@@ -29,6 +25,18 @@ namespace DataGridSystem.Controllers
             _context = context;
             _logger = logger;
         }
+                private async Task<bool> UserHasAccessToGrid(int gridId, string userId)
+{
+    var grid = await _context.DataGrids
+        .Include(g => g.Owner)
+        .FirstOrDefaultAsync(g => g.GridId == gridId);
+
+    if (grid == null) return false;
+
+    return grid.IsPublic ||
+           grid.Owner.Id == userId ||
+           await _context.DataGridPermissions.AnyAsync(p => p.GridId == gridId && p.UserId == userId);
+}
 
         // GET: api/DataGrids
         [HttpGet]
@@ -104,7 +112,7 @@ namespace DataGridSystem.Controllers
             return Forbid();
         }
 
-        // POST: api/DataGrids
+              // POST: api/DataGrids
         [HttpPost]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> CreateDataGrid([FromBody] DataGridDto dataGridDto)
@@ -253,35 +261,6 @@ namespace DataGridSystem.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        [HttpPost("{gridId}/rows/batch-delete")]
-        [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> DeleteMultipleRows(int gridId, [FromBody] List<int> rowIds)
-        {
-            if (rowIds == null || rowIds.Count == 0)
-                return BadRequest("No rows selected for deletion.");
-
-            var dataGrid = await _context.DataGrids
-                .Include(g => g.Rows)
-                .FirstOrDefaultAsync(g => g.GridId == gridId);
-
-            if (dataGrid == null)
-                return NotFound("Grid not found.");
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
-                return Unauthorized("Invalid User ID.");
-
-            if (dataGrid.Owner.UserName != userIdClaim && !User.IsInRole("Administrator"))
-                return Forbid();
-
-            // Delete selected rows
-            var rowsToDelete = dataGrid.Rows.Where(r => rowIds.Contains(r.RowId)).ToList();
-            _context.Rows.RemoveRange(rowsToDelete);
-
-            await _context.SaveChangesAsync();
-            return Ok($"{rowsToDelete.Count} rows deleted successfully.");
         }
     }
 }
