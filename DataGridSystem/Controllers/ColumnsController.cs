@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using DataGridSystem.Data;
 using DataGridSystem.Models;
+using System.Text.RegularExpressions;
 
 namespace DataGridSystem.Controllers
 {
@@ -117,46 +118,65 @@ namespace DataGridSystem.Controllers
             return NoContent();
         }
 
-        private bool ValidateColumnType(Column column, out string errorMessage)
+        private bool ValidateColumnType(Column column, out string validationError)
         {
-            errorMessage = "";
-
-            switch (column.DataType)
+            validationError = string.Empty;
+            
+            if (string.IsNullOrWhiteSpace(column.Name))
             {
-                case "String":
-                case "Numeric":
-                case "Email":
-                    return true;
-
-                case "Regexp":
-                    if (string.IsNullOrWhiteSpace(column.ValidationPattern))
-                    {
-                        errorMessage = "ValidationPattern is required for Regexp columns.";
-                        return false;
-                    }
-                    return true;
-
-                case "ExternalCollection":
-                    if (string.IsNullOrWhiteSpace(column.ExternalCollectionUrl))
-                    {
-                        errorMessage = "ExternalCollectionUrl is required for External Collection columns.";
-                        return false;
-                    }
-                    return true;
-
-                case "SingleSelect":
-                case "MultiSelect":
-                    if (column.Options == null || !column.Options.Any())
-                    {
-                        errorMessage = "Options are required for Single-Select and Multi-Select columns.";
-                        return false;
-                    }
-                    return true;
-
-                default:
-                    errorMessage = "Invalid DataType.";
-                    return false;
+                validationError = "Column name cannot be empty";
+                return false;
             }
+
+            if (column.Name.Length > 100)
+            {
+                validationError = "Column name cannot exceed 100 characters";
+                return false;
+            }
+
+            var validDataTypes = new List<string> { 
+                "String", "Number", "Boolean", "Date", 
+                "Email", "URL", "SingleSelect", "MultiSelect", 
+                "Reference", "ExternalCollection" 
+            };
+
+            if (!validDataTypes.Contains(column.DataType))
+            {
+                validationError = $"Invalid data type: {column.DataType}";
+                return false;
+            }
+
+            // Validate pattern if provided
+            if (!string.IsNullOrEmpty(column.ValidationPattern))
+            {
+                try
+                {
+                    _ = new Regex(column.ValidationPattern);
+                }
+                catch (ArgumentException ex)
+                {
+                    validationError = $"Invalid validation pattern: {ex.Message}";
+                    return false;
+                }
+            }
+
+            // Validate options for select types
+            if ((column.DataType == "SingleSelect" || column.DataType == "MultiSelect") && 
+                (column.Options == null || !column.Options.Any()))
+            {
+                validationError = "Select types must have options defined";
+                return false;
+            }
+
+            // Validate external collection URL
+            if (column.DataType == "ExternalCollection" && 
+                string.IsNullOrEmpty(column.ExternalCollectionUrl))
+            {
+                validationError = "ExternalCollection type must have a collection URL";
+                return false;
+            }
+
+            return true;
         }
     }
 }

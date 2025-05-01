@@ -30,7 +30,10 @@ namespace DataGridSystem.Controllers
 
             if (grid == null) return false;
 
+            var isAdmin = User.IsInRole("Administrator"); // Check admin role
+
             return grid.IsPublic ||
+                isAdmin ||
                 grid.Owner.Id == userId ||
                 await _context.DataGridPermissions.AnyAsync(p => p.GridId == gridId && p.UserId == userId);
         }
@@ -286,6 +289,133 @@ namespace DataGridSystem.Controllers
 
             await _context.SaveChangesAsync();
             return Ok($"{rowsToDelete.Count} rows deleted successfully.");
+        }
+
+        // Batch Operations
+        [HttpPost("{gridId}/batch")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> CreateBatchRows(int gridId, [FromBody] List<CreateRowDto> rowDtos)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!await UserHasAccessToGrid(gridId, userId))
+                return Forbid();
+
+            // Validate import data
+            var validationResult = await ValidateImportData(gridId, rowDtos);
+            if (validationResult != null) return validationResult;
+
+            try 
+            {
+                var newRows = new List<Row>();
+                foreach (var rowDto in rowDtos)
+                {
+                    var newRow = new Row
+                    {
+                        GridId = gridId,
+                        Values = rowDto.Values,
+                        Status = rowDto.Status ?? "ToDo",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    newRows.Add(newRow);
+                }
+
+                await _context.Rows.AddRangeAsync(newRows);
+                await _context.SaveChangesAsync();
+
+                return Ok(new {
+                    message = $"{newRows.Count} rows imported successfully",
+                    importedRows = newRows.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error importing rows: {ex.Message}");
+            }
+        }
+
+private async Task<IActionResult> ValidateImportData(int gridId, List<CreateRowDto> rows)
+{
+    if (rows == null || !rows.Any())
+        return BadRequest("No rows provided for import");
+
+    var columns = await _context.Columns
+        .Where(c => c.GridId == gridId)
+        .ToListAsync();
+
+    if (!columns.Any())
+        return BadRequest("Grid has no columns defined");
+
+    var requiredColumns = columns
+        .Where(c => c.IsRequired)
+        .Select(c => c.Name)
+        .ToList();
+
+    var allColumnNames = columns.Select(c => c.Name).ToList();
+
+    for (int i = 0; i < rows.Count; i++)
+    {
+        var row = rows[i];
+        var rowNumber = i + 1;
+
+        // Check for required columns
+        foreach (var requiredCol in requiredColumns)
+        {
+            if (!row.Values.ContainsKey(requiredCol))
+            {
+                return BadRequest($"Row {rowNumber}: Missing required column '{requiredCol}'");
+            }
+
+            if (string.IsNullOrWhiteSpace(row.Values[requiredCol]))
+            {
+                return BadRequest($"Row {rowNumber}: Required column '{requiredCol}' cannot be empty");
+            }
+        }
+
+        // Validate all provided columns exist
+        foreach (var columnName in row.Values.Keys)
+        {
+            if (!allColumnNames.Contains(columnName))
+            {
+                return BadRequest($"Row {rowNumber}: Column '{columnName}' does not exist in grid");
+            }
+        }
+
+        // Validate data types
+        foreach (var kvp in row.Values)
+        {
+            var column = columns.First(c => c.Name == kvp.Key);
+            if (!ValidateColumnDataType(kvp.Value, column.DataType, column, out string errorMessage))
+            {
+                return BadRequest($"Row {rowNumber}: {errorMessage}");
+            }
+        }
+    }
+
+    return null;
+}
+
+        [HttpDelete("{gridId}/batch")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> DeleteBatchRows(int gridId, [FromBody] List<int> rowIds)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!await UserHasAccessToGrid(gridId, userId))
+                return Forbid();
+
+            var rowsToDelete = await _context.Rows
+                .Where(r => r.GridId == gridId && rowIds.Contains(r.RowId))
+                .ToListAsync();
+
+            if (rowsToDelete.Count != rowIds.Count)
+                return NotFound("Some rows not found");
+
+            _context.Rows.RemoveRange(rowsToDelete);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

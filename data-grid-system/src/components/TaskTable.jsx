@@ -14,7 +14,8 @@ import {
   ListItemIcon,
   ListItemText,
   Select,
-  CircularProgress
+  CircularProgress,
+  Button
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -22,9 +23,19 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from '@mui/icons-material/Delete';
-import { updateRow, createRow, deleteRow } from "../services/DataGridService";
+import UploadIcon from '@mui/icons-material/Upload';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import { 
+  updateRow, 
+  createRow, 
+  deleteRow,
+  getRows,
+  deleteBatchRows,
+  pasteSpreadsheetData
+} from "../services/DataGridService";
 import { getSafeValues } from '../utils/rowUtils';
-import { formatDate, ensureValidDate } from '../utils/dateUtils';
+import { formatDate } from '../utils/dateUtils';
+import ExcelImportModal from './ExcelImportModal';
 
 const defaultFields = [
   { key: "createdAt", label: "Created At", editable: false, enabled: true },
@@ -37,42 +48,56 @@ const defaultFields = [
 
 const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
   const [rows, setRows] = useState([]);
-  const [columns, setColumns] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [batchProcessing, setBatchProcessing] = useState(false);
   const statusOptions = ["ToDo", "In progress", "Finished"];
-  
-  useEffect(() => {
-    const loadData = async () => {
-      if (grid?.gridId) {
-        try {
-          const response = await getRows(grid.gridId);
-          const normalizedRows = response.map(row => ({
-            id: row.rowId,
-            status: row.status || "ToDo",
-            createdAt: row.createdAt,
-            ...getSafeValues(row)
-          }));
-          setRows(normalizedRows);
-        } catch (error) {
-          console.error("Failed to load rows:", error);
-          alert("Failed to refresh data. Please try again.");
-        }
-      }
-    };
-  
-    loadData();
-  }, [grid]);
-
   const [fields, setFields] = useState(defaultFields);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+
+  const loadData = async () => {
+    if (!grid?.gridId) return;
+
+    try {
+      setLoading(true);
+      const response = await getRows(grid.gridId);
+
+      const normalizedRows = response.map(row => ({
+        id: row.rowId,
+        rowId: row.rowId,
+        gridId: row.gridId,
+        status: row.status || "ToDo",
+        createdAt: row.createdAt,
+        ...row.values,
+        values: row.values || {}
+      }));
+
+      setRows(normalizedRows);
+    } catch (error) {
+      console.error("Failed to load rows:", {
+        gridId: grid.gridId,
+        error: error.response?.data || error.message
+      });
+
+      if (error.response?.status !== 403) {
+        alert(`Failed to refresh data: ${error.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [grid?.gridId]);
 
   const handleInputChange = async (e, rowIndex, fieldKey) => {
     const newValue = e.target.value;
     const originalRows = [...rows];
     
     try {
-      // Optimistic update
       const updatedRows = rows.map((row, index) => 
         index === rowIndex 
           ? { 
@@ -94,13 +119,10 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
           ...(rows[rowIndex].values || {}),
           [fieldKey]: newValue
         },
-        status: rows[rowIndex].status // Include current status
+        status: rows[rowIndex].status
       };
   
-      // Wait for update to complete and get the updated row
       const updatedRow = await updateRow(grid.gridId, rowId, updatePayload);
-      
-      // Update local state with the server's response
       setRows(prevRows => prevRows.map(row => 
         row.id === rowId ? { ...row, ...updatedRow } : row
       ));
@@ -118,39 +140,119 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
   const handleAddRow = async () => {
     setLoading(true);
     try {
+      const existingColumnKeys = grid.columns.map(col => col.key);
+  
+      const cleanValues = Object.fromEntries(
+        defaultFields
+          .filter(f => f.enabled && f.key !== "createdAt" && existingColumnKeys.includes(f.key))
+          .map(f => [f.key, ""])
+      );
+  
       const newRow = {
         gridId: grid.gridId,
-        values: Object.fromEntries(columns.map(col => [col.name, ""])),
+        values: cleanValues,
         status: "ToDo"
       };
+  
       const createdRow = await createRow(grid.gridId, newRow);
+  
       const normalizedRow = {
         id: createdRow.rowId,
         status: createdRow.status,
         createdAt: createdRow.createdAt,
         ...getSafeValues(createdRow)
       };
+  
       setRows([...rows, normalizedRow]);
       if (onRowCreated) onRowCreated(normalizedRow);
     } catch (error) {
       console.error("Error creating row:", error);
+      alert("Failed to create row. Please check column definitions.");
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const handleDeleteRow = async (rowId, rowIndex) => {
     setDeleteLoading(rowIndex);
     try {
-      const updatedRows = rows.filter(row => row.id !== rowId);
-      setRows(updatedRows);
       await deleteRow(rowId);
+      setRows(prev => prev.filter(row => row.id !== rowId));
+      setSelectedRows(prev => prev.filter(id => id !== rowId));
       if (onRowDeleted) onRowDeleted(rowId);
     } catch (error) {
       console.error("Delete failed:", error);
-      setRows(rows);
     } finally {
       setDeleteLoading(null);
+    }
+  };
+
+  const handleRowSelect = (rowId) => {
+    setSelectedRows(prev => 
+      prev.includes(rowId) 
+        ? prev.filter(id => id !== rowId)
+        : [...prev, rowId]
+    );
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedRows.length === 0) return;
+    if (!window.confirm(`Delete ${selectedRows.length} selected rows?`)) return;
+    
+    try {
+      setBatchProcessing(true);
+      await deleteBatchRows(selectedRows);
+      setRows(prev => prev.filter(row => !selectedRows.includes(row.id)));
+      setSelectedRows([]);
+      alert(`Deleted ${selectedRows.length} rows successfully`);
+    } catch (error) {
+      alert(`Failed to delete rows: ${error.message}`);
+    } finally {
+      setBatchProcessing(false);
+    }
+  };
+
+  const handlePaste = async (e) => {
+    e.preventDefault();
+    const clipboardData = e.clipboardData.getData('text');
+    
+    try {
+      setBatchProcessing(true);
+      const newRows = await pasteSpreadsheetData(
+        grid.gridId, 
+        clipboardData, 
+        fields.filter(f => f.enabled).map(f => ({ name: f.key, type: f.type || 'text' }))
+      );
+      
+      const normalizedRows = newRows.map(row => ({
+        id: row.rowId,
+        status: row.status || "ToDo",
+        createdAt: row.createdAt,
+        ...getSafeValues(row)
+      }));
+      
+      setRows(prev => [...prev, ...normalizedRows]);
+      if (onRowCreated) {
+        normalizedRows.forEach(row => onRowCreated(row));
+      }
+      alert(`Added ${newRows.length} rows from clipboard`);
+    } catch (error) {
+      alert(`Paste failed: ${error.message}`);
+    } finally {
+      setBatchProcessing(false);
+    }
+  };
+
+  const handleManualPaste = async () => {
+    try {
+      const clipboardData = await navigator.clipboard.readText();
+      const pasteEvent = {
+        preventDefault: () => {},
+        clipboardData: { getData: () => clipboardData }
+      };
+      await handlePaste(pasteEvent);
+    } catch (error) {
+      alert(`Failed to read clipboard: ${error.message}`);
     }
   };
 
@@ -160,7 +262,11 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
     
     updatedRows[rowIndex] = {
       ...updatedRows[rowIndex],
-      [fieldKey]: formattedDate
+      [fieldKey]: formattedDate,
+      values: {
+        ...(updatedRows[rowIndex].values || {}),
+        [fieldKey]: formattedDate
+      }
     };
     
     setRows(updatedRows);
@@ -175,28 +281,39 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
     }
   };
 
-  const handleStatusChange = (event, rowIndex) => {
+  const handleStatusChange = async (event, rowIndex) => {
     const newStatus = event.target.value;
-    const updatedRows = [...rows];
-    
-    updatedRows[rowIndex] = {
-      ...updatedRows[rowIndex],
+    const originalRows = [...rows];
+    const rowId = rows[rowIndex].id;
+  
+    const updatedRow = {
+      ...rows[rowIndex],
       status: newStatus
     };
-    
+    const updatedRows = [...rows];
+    updatedRows[rowIndex] = updatedRow;
     setRows(updatedRows);
-    
-    if (grid?.gridId && updatedRows[rowIndex].id) {
-      updateRow(grid.gridId, updatedRows[rowIndex].id, { 
+  
+    try {
+      const updatePayload = {
         status: newStatus,
-        values: getSafeValues(updatedRows[rowIndex])
-      }).catch(error => console.error("Error updating status:", error));
+        values: { ...(rows[rowIndex].values || {}) }
+      };
+      const response = await updateRow(grid.gridId, rowId, updatePayload);
+      
+      setRows(prevRows =>
+        prevRows.map(row => (row.id === rowId ? { ...row, ...response } : row))
+      );
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setRows(originalRows);
+      alert(`Failed to update status: ${error.response?.data || error.message}`);
     }
-  };
+  };  
 
   const toggleField = (key) => {
-    setFields((prev) =>
-      prev.map((field) =>
+    setFields(prev =>
+      prev.map(field =>
         field.key === key ? { ...field, enabled: !field.enabled } : field
       )
     );
@@ -212,11 +329,65 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Paper style={{ padding: "16px", borderRadius: "8px", overflowX: "auto", width: "100%" }}>
+      <Paper 
+        style={{ padding: "16px", borderRadius: "8px", overflowX: "auto", width: "100%" }}
+        onPaste={handlePaste}
+      >
+        {/* Batch Operations Toolbar */}
+        <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <Button 
+            variant="contained" 
+            onClick={() => setImportModalOpen(true)}
+            startIcon={<UploadIcon />}
+          >
+            Import Data
+          </Button>
+
+          <ExcelImportModal
+            gridId={grid?.gridId}
+            open={importModalOpen}
+            onClose={() => setImportModalOpen(false)}
+            onImportSuccess={() => {
+              loadData();
+            }}
+          />
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            disabled={selectedRows.length === 0 || batchProcessing}
+            onClick={handleBatchDelete}
+          >
+            Delete Selected ({selectedRows.length})
+          </Button>
+
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+          >
+            Columns
+          </Button>
+        </div>
+
         <div style={{ overflowX: "auto", width: "100%" }}>
           <Table size="small" style={{ width: "100%", tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={selectedRows.length > 0 && selectedRows.length < rows.length}
+                    checked={rows.length > 0 && selectedRows.length === rows.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedRows(rows.map(row => row.id));
+                      } else {
+                        setSelectedRows([]);
+                      }
+                    }}
+                  />
+                </TableCell>
+                
                 {fields.filter((field) => field.enabled).map((field) => (
                   <TableCell 
                     key={field.key} 
@@ -230,23 +401,21 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
                   </TableCell>
                 ))}
                 <TableCell style={{ width: "120px", textAlign: "center" }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <IconButton 
-                      onClick={handleMenuOpen} 
-                      size="small" 
-                      color="primary" 
-                      style={{ background: "#f1f1f1", borderRadius: "5px" }}
-                    >
-                      <AddIcon />
-                    </IconButton>
-                    <span style={{ lineHeight: '40px' }}>Actions</span>
-                  </div>
+                  Actions
                 </TableCell>
               </TableRow>
             </TableHead>
+            
             <TableBody>
               {rows.map((row, rowIndex) => (
-                <TableRow key={row.id || rowIndex}>
+                <TableRow key={row.id || rowIndex} hover>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedRows.includes(row.id)}
+                      onChange={() => handleRowSelect(row.id)}
+                    />
+                  </TableCell>
+                  
                   {fields.filter((field) => field.enabled).map((field) => (
                     <TableCell 
                       key={field.key} 
@@ -297,12 +466,13 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
                       )}
                     </TableCell>
                   ))}
+                  
                   <TableCell style={{ width: '120px', textAlign: 'center' }}>
                     <IconButton 
                       onClick={() => handleDeleteRow(row.id, rowIndex)}
                       color="error"
                       size="small"
-                      disabled={deleteLoading === rowIndex}
+                      disabled={deleteLoading === rowIndex || batchProcessing}
                     >
                       {deleteLoading === rowIndex ? (
                         <CircularProgress size={24} />
@@ -316,14 +486,18 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
               
               {grid?.gridId && (
                 <TableRow 
-                  onClick={() => handleAddRow(grid.gridId)}
-                  style={{ cursor: "pointer", backgroundColor: "#fafafa" }}
+                  onClick={() => !batchProcessing && handleAddRow()}
+                  style={{ 
+                    cursor: batchProcessing ? 'not-allowed' : 'pointer', 
+                    backgroundColor: "#fafafa",
+                    opacity: batchProcessing ? 0.7 : 1
+                  }}
                 >
                   <TableCell 
-                    colSpan={fields.filter(f => f.enabled).length + 1}
+                    colSpan={fields.filter(f => f.enabled).length + 2}
                     style={{ textAlign: "center", fontWeight: "bold", color: "#1976d2" }}
                   >
-                    {loading ? <CircularProgress size={24} /> : "+ New Row"}
+                    {loading || batchProcessing ? <CircularProgress size={24} /> : "+ New Row"}
                   </TableCell>
                 </TableRow>
               )}

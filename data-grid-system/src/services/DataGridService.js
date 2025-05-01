@@ -5,15 +5,19 @@ import { ensureValidDate } from '../utils/dateUtils';
 const normalizeRow = (row) => {
   if (!row) return { 
     values: {}, 
-    status: 'ToDo'
+    status: 'ToDo',
+    createdAt: new Date().toISOString(),
+    id: 'temp-' + Math.random().toString(36).substr(2, 9)
   };
   
   return {
-    ...row,
-    id: row.rowId || row.id,
-    values: getSafeValues(row),
+    id: row.rowId || row.id, // Prefer rowId from backend
+    rowId: row.rowId, // Keep original rowId
+    gridId: row.gridId,
+    values: row.values || getSafeValues(row),
     status: row.status || 'ToDo',
-    createdAt: ensureValidDate(row.createdAt)
+    createdAt: ensureValidDate(row.createdAt) || new Date().toISOString(),
+    ...(row.values || {}) // Spread values for backward compatibility
   };
 };
 
@@ -24,19 +28,15 @@ export const getGrids = async () => {
     const response = await api.get('/DataGrids', {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
     return response.data;
   } catch (error) {
     console.error('Error fetching grids:', error.response?.data || error.message);
-
     if (error.response?.status === 401 || error.response?.status === 403) {
-      console.warn("Unauthorized access - redirecting to login.");
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = "/login";
     }
-
-    return null;
+    throw error;
   }
 };
 
@@ -48,68 +48,103 @@ export const createGrid = async (gridData) => {
     });
     return response.data;
   } catch (error) {
-    console.error("Error creating grid:", {
-      message: error.message,
-      response: error.response?.data,
-      config: error.config
-    });
+    console.error("Error creating grid:", error);
     throw error;
   }
 };
 
-// Update a grid
 export const updateGrid = async (gridId, updatedGrid) => {
   try {
     const response = await api.put(`/DataGrids/${gridId}`, updatedGrid);
     return response.status === 204 ? null : response.data;
   } catch (error) {
-    console.error("Error updating grid:", error.response?.data || error.message);
+    console.error("Error updating grid:", error);
     throw error;
   }
 };
 
-// Delete a grid
 export const deleteGrid = async (gridId) => {
   try {
-    const response = await api.delete(`/DataGrids/${gridId}`);
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error("Authentication required");
+    if (!gridId) throw new Error("Grid ID is required");
+
+    const response = await api.delete(`/DataGrids/${gridId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
     return response.data;
   } catch (error) {
-    console.error("Error deleting grid:", error.response?.data || error.message);
+    console.error("Delete grid error:", {
+      gridId,
+      status: error.response?.status,
+      data: error.response?.data
+    });
     throw error;
   }
 };
 
-// Fetch Columns for a Grid
 export const getColumns = async (gridId) => {
   try {
     const response = await api.get(`/DataGrids/${gridId}/columns`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching columns:", error.response?.data || error.message);
+    console.error("Error fetching columns:", error);
     throw error;
   }
 };
 
-// Create a Column in a Grid
 export const createColumn = async (gridId, columnData) => {
   try {
     const response = await api.post(`/DataGrids/${gridId}/columns`, columnData);
     return response.data;
   } catch (error) {
-    console.error("Error creating column:", error.response?.data || error.message);
+    console.error("Error creating column:", error);
     throw error;
   }
 };
 
-// Fetch Rows for a Grid
 export const getRows = async (gridId) => {
   try {
-    const response = await api.get(`/DataGrids/${gridId}/rows`);
-    return Array.isArray(response.data) 
-      ? response.data.map(normalizeRow)
-      : [normalizeRow(response.data)];
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      window.location.href = "/login";
+      throw new Error("No authentication token found");
+    }
+
+    const response = await api.get(`/Rows/${gridId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    return response.data.map(row => ({
+      id: row.rowId,
+      rowId: row.rowId,
+      gridId: row.gridId,
+      values: row.values || {},
+      status: row.status || "ToDo",
+      createdAt: row.createdAt
+    }));
+
   } catch (error) {
-    console.error("Error fetching rows:", error.response?.data || error.message);
+    console.error("API Error Details:", {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      error: error.message
+    });
+
+    if (error.response?.status === 401) {
+      window.location.href = "/login";
+    } else if (error.response?.status === 403) {
+      alert("You do not have permission to view this grid.");
+    }
+
     throw error;
   }
 };
@@ -117,16 +152,14 @@ export const getRows = async (gridId) => {
 export const createRow = async (gridId, rowData) => {
   const token = localStorage.getItem("authToken");
   try {
-    const payload = {
-      ...rowData,
-      values: rowData.values || {}
-    };
-    
-    const response = await api.post(`/Rows/${gridId}/rows`, payload, {
+    const response = await api.post(`/Rows/${gridId}/rows`, {
+      gridId, // <-- ADD THIS
+      values: rowData.values || {},
+      status: rowData.status || "ToDo"
+    }, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    
-    // Trust the backend's timestamp completely
+
     return normalizeRow(response.data);
   } catch (error) {
     console.error("Error creating row:", error.response?.data || error.message);
@@ -134,85 +167,14 @@ export const createRow = async (gridId, rowData) => {
   }
 };
 
-// export const createRow = async (gridId, rowData) => {
-//   const token = localStorage.getItem("authToken");
-//   try {
-//     const response = await api.post(`/Rows/${gridId}/rows`, {
-//       ...rowData,
-//       values: rowData.values || {}
-//     }, {
-//       headers: token ? { Authorization: `Bearer ${token}` } : {},
-//     });
-//     return normalizeRow(response.data);
-//   } catch (error) {
-//     console.error("Error creating row:", error.response?.data || error.message);
-//     throw error;
-//   }
-// };
-
-// export const updateRow = async (gridId, rowId, rowData) => {
-//   try {
-//     const payload = {
-//       ...rowData,
-//       RowId: rowId,
-//       values: rowData.values || {}
-//     };
-    
-//     const response = await api.put(`/Rows/${rowId}`, payload);
-//     return normalizeRow(response.data);
-//   } catch (error) {
-//     console.error("Error updating row:", {
-//       message: error.message,
-//       response: error.response?.data,
-//       config: error.config
-//     });
-//     throw error;
-//   }
-// };
-
-// export const deleteRow = async (rowId) => {
-//   try {
-//     const token = localStorage.getItem('authToken');
-//     const response = await api.delete(`/Rows/${rowId}`, { 
-//       headers: token ? { Authorization: `Bearer ${token}` } : {}
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error deleting row:", {
-//       message: error.message,
-//       response: error.response?.data,
-//       config: error.config
-//     });
-//     throw error;
-//   }
-// };
-
-// export const deleteRows = async (rowIds) => {
-//   try {
-//     const token = localStorage.getItem('authToken');
-//     const response = await api.delete('/api/Rows/batch', {
-//       data: rowIds,
-//       headers: token ? { Authorization: `Bearer ${token}` } : {}
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error deleting rows:", {
-//       message: error.message,
-//       response: error.response?.data,
-//       config: error.config
-//     });
-//     throw error;
-//   }
-// };
-
 export const updateRow = async (gridId, rowId, rowData) => {
   try {
     const payload = {
       ...rowData,
-      GridId: gridId, // Include gridId in payload
+      GridId: gridId,
       RowId: rowId,
       values: rowData.values || {},
-      status: rowData.status || "ToDo" // Ensure status is always included
+      status: rowData.status || "ToDo"
     };
     
     const response = await api.put(`/Rows/${rowId}`, payload);
@@ -227,6 +189,7 @@ export const updateRow = async (gridId, rowId, rowData) => {
   }
 };
 
+
 export const deleteRow = async (rowId) => {
   try {
     const token = localStorage.getItem('authToken');
@@ -235,44 +198,97 @@ export const deleteRow = async (rowId) => {
     });
     return response.data;
   } catch (error) {
-    console.error("Error deleting row:", {
-      message: error.message,
-      response: error.response?.data,
-      config: error.config
-    });
+    console.error("Error deleting row:", error);
     throw error;
   }
 };
 
-export const deleteRows = async (rowIds) => {
+export const deleteBatchRows = async (rowIds) => {
   try {
     const token = localStorage.getItem('authToken');
-    const response = await api.delete('/Rows/batch', {  // Fixed endpoint path
+    const response = await api.delete('/Rows/batch', {
       data: rowIds,
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return response.data;
   } catch (error) {
-    console.error("Error deleting rows:", {
-      message: error.message,
-      response: error.response?.data,
-      config: error.config
-    });
+    console.error("Error in batch delete:", error);
     throw error;
   }
 };
 
-// Set permissions for a user on a specific grid
+export const createBatchRows = async (gridId, rowsData) => {
+  const token = localStorage.getItem("authToken");
+  try {
+    const response = await api.post(`/Rows/${gridId}/batch`, 
+      rowsData.map(row => ({
+        values: row.values || {},
+        status: row.status || "ToDo"
+      })),
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
+    return response.data.map(normalizeRow);
+  } catch (error) {
+    console.error("Error creating batch rows:", error);
+    throw error;
+  }
+};
+
+export const pasteSpreadsheetData = async (gridId, clipboardData, columns) => {
+  try {
+    // Parse the clipboard data (tab-separated values)
+    const rows = clipboardData
+      .trim()
+      .split('\n')
+      .map(row => row.split('\t'));
+
+    if (rows.length === 0) {
+      throw new Error("No data found in clipboard");
+    }
+    
+    // Create payload for each row
+    const rowPayloads = rows.map(rowValues => {
+      const values = {};
+      columns.forEach((col, index) => {
+        if (col.name && rowValues[index]) {
+          values[col.name] = rowValues[index].trim();
+        }
+      });
+
+      return {
+        gridId,
+        values,
+        status: "ToDo"
+      };
+    });
+
+    // Use existing createRow instead of batch create for reliability
+    const createdRows = [];
+    for (const payload of rowPayloads) {
+      try {
+        const row = await createRow(gridId, payload);
+        createdRows.push(row);
+      } catch (error) {
+        console.error("Error creating row from paste:", error);
+        // Continue with other rows even if one fails
+      }
+    }
+
+    return createdRows;
+  } catch (error) {
+    console.error("Error in paste operation:", error);
+    throw new Error(`Paste failed: ${error.message}`);
+  }
+};
+
 export const setGridPermissions = async (gridId, allowedUsers) => {
   try {
-    console.log("🔹 Setting permissions for grid:", gridId, "Users:", allowedUsers);
-
     const response = await api.post(`/DataGrids/${gridId}/permissions`, { allowedUsers });
-
-    console.log("Permissions set successfully:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error setting grid permissions:", error.response?.data || error.message);
+    console.error("Error setting grid permissions:", error);
     throw error;
   }
 };

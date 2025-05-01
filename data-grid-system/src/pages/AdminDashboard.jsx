@@ -8,6 +8,8 @@ import {
   Checkbox, Chip, Box, CircularProgress, Snackbar, Alert
 } from '@mui/material';
 import TaskTable from '../components/TaskTable';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import '../assets/css/adminDashboard.css';
 import logo from '../assets/imgs/centaurea.jpg';
@@ -68,13 +70,27 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteGrid = async (gridId) => {
+    if (!gridId) {
+      setError('Invalid grid ID');
+      return;
+    }
+  
     try {
+      console.log('Attempting to delete grid with ID:', gridId);
       await deleteGrid(gridId);
-      setGrids(grids.filter(g => g.id !== gridId));
-      if (selectedGrid?.id === gridId) setSelectedGrid(null);
-      setSuccess('Grid deleted successfully!');
+      
+      // Update filter to use gridId instead of id
+      setGrids(prevGrids => prevGrids.filter(g => g.gridId !== gridId));
+      
+      if (selectedGrid?.gridId === gridId) {
+        setSelectedGrid(null);
+      }
+      
+      setSuccess(`Grid deleted successfully!`);
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.message);
+      console.error('Delete error:', err);
+      setError(err.message || 'Failed to delete grid');
     }
   };
 
@@ -147,6 +163,27 @@ const AdminDashboard = () => {
                   <ListItem 
                     key={grid.id} 
                     className={`grid-item ${selectedGrid?.id === grid.id ? 'selected' : ''}`}
+                    secondaryAction={
+                      <IconButton 
+                        edge="end" 
+                        aria-label="delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Current grid:', grid);
+                          
+                          if (!grid?.gridId) {
+                            console.error('No grid ID found in grid.gridId');
+                            return;
+                          }
+
+                          if (window.confirm(`Are you sure you want to permanently delete "${grid.name}"?`)) {
+                            handleDeleteGrid(grid.gridId);
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    }
                     onClick={() => setSelectedGrid(grid)}
                   >
                     <div className="grid-info">
