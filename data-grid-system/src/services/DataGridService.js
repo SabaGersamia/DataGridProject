@@ -11,13 +11,13 @@ const normalizeRow = (row) => {
   };
   
   return {
-    id: row.rowId || row.id, // Prefer rowId from backend
-    rowId: row.rowId, // Keep original rowId
+    id: row.rowId || row.id,
+    rowId: row.rowId,
     gridId: row.gridId,
     values: row.values || getSafeValues(row),
     status: row.status || 'ToDo',
     createdAt: ensureValidDate(row.createdAt) || new Date().toISOString(),
-    ...(row.values || {}) // Spread values for backward compatibility
+    ...(row.values || {})
   };
 };
 
@@ -153,7 +153,7 @@ export const createRow = async (gridId, rowData) => {
   const token = localStorage.getItem("authToken");
   try {
     const response = await api.post(`/Rows/${gridId}/rows`, {
-      gridId, // <-- ADD THIS
+      gridId,
       values: rowData.values || {},
       status: rowData.status || "ToDo"
     }, {
@@ -178,7 +178,7 @@ export const updateRow = async (gridId, rowId, rowData) => {
     };
     
     const response = await api.put(`/Rows/${rowId}`, payload);
-    return response.data; // Return raw response data
+    return response.data;
   } catch (error) {
     console.error("Error updating row:", {
       message: error.message,
@@ -220,25 +220,26 @@ export const deleteBatchRows = async (rowIds) => {
 export const createBatchRows = async (gridId, rowsData) => {
   const token = localStorage.getItem("authToken");
   try {
-    const response = await api.post(`/Rows/${gridId}/batch`, 
-      rowsData.map(row => ({
-        values: row.values || {},
-        status: row.status || "ToDo"
-      })),
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    const response = await api.post(`/Rows/${gridId}/batch`, rowsData, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
       }
-    );
-    return response.data.map(normalizeRow);
+    });
+    
+    if (!Array.isArray(response.data)) {
+      throw new Error('Expected array of created rows');
+    }
+    
+    return response.data;
   } catch (error) {
-    console.error("Error creating batch rows:", error);
+    console.error("Batch create failed:", error.response?.data || error.message);
     throw error;
   }
 };
 
 export const pasteSpreadsheetData = async (gridId, clipboardData, columns) => {
   try {
-    // Parse the clipboard data (tab-separated values)
     const rows = clipboardData
       .trim()
       .split('\n')
@@ -248,7 +249,6 @@ export const pasteSpreadsheetData = async (gridId, clipboardData, columns) => {
       throw new Error("No data found in clipboard");
     }
     
-    // Create payload for each row
     const rowPayloads = rows.map(rowValues => {
       const values = {};
       columns.forEach((col, index) => {
@@ -264,7 +264,6 @@ export const pasteSpreadsheetData = async (gridId, clipboardData, columns) => {
       };
     });
 
-    // Use existing createRow instead of batch create for reliability
     const createdRows = [];
     for (const payload of rowPayloads) {
       try {
@@ -272,7 +271,6 @@ export const pasteSpreadsheetData = async (gridId, clipboardData, columns) => {
         createdRows.push(row);
       } catch (error) {
         console.error("Error creating row from paste:", error);
-        // Continue with other rows even if one fails
       }
     }
 

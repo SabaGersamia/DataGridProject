@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json.Serialization;
 
 namespace DataGridSystem.Data
 {
@@ -20,7 +21,6 @@ namespace DataGridSystem.Data
         {
             base.OnModelCreating(builder);
 
-            // Table naming for PostgreSQL case-sensitivity
             builder.Entity<DataGrid>().ToTable("DataGrids");
             builder.Entity<Column>().ToTable("Columns");
             builder.Entity<Row>().ToTable("Rows");
@@ -66,7 +66,7 @@ namespace DataGridSystem.Data
                             ?? new Dictionary<string, string>());
 
                 entity.Property(r => r.CreatedAt)
-                    .HasDefaultValueSql("NOW()") // PostgreSQL function
+                    .HasDefaultValueSql("NOW()")
                     .ValueGeneratedOnAdd();
             });
         }

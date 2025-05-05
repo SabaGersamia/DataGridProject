@@ -7,6 +7,7 @@ using DataGridSystem.Models;
 using System.Security.Claims;
 using FluentValidation;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 namespace DataGridSystem.Controllers
 {
@@ -30,7 +31,7 @@ namespace DataGridSystem.Controllers
 
             if (grid == null) return false;
 
-            var isAdmin = User.IsInRole("Administrator"); // Check admin role
+            var isAdmin = User.IsInRole("Administrator");
 
             return grid.IsPublic ||
                 isAdmin ||
@@ -80,7 +81,6 @@ namespace DataGridSystem.Controllers
                 _context.Rows.Add(newRow);
                 await _context.SaveChangesAsync();
 
-                // Fixed return statement with proper comma
                 return CreatedAtAction(nameof(GetRows), new { gridId = gridId }, new {
                     RowId = newRow.RowId,
                     GridId = newRow.GridId,
@@ -158,7 +158,6 @@ namespace DataGridSystem.Controllers
                     break;
 
                 case "ExternalCollection":
-                    // Add your custom validation logic for ExternalCollection columns
                     break;
 
                 case "SingleSelect":
@@ -185,7 +184,7 @@ namespace DataGridSystem.Controllers
                 return BadRequest("ID mismatch.");
 
             var row = await _context.Rows
-                .FirstOrDefaultAsync(r => r.RowId == id); // Removed unnecessary includes
+                .FirstOrDefaultAsync(r => r.RowId == id);
 
             if (row == null) return NotFound();
 
@@ -193,14 +192,13 @@ namespace DataGridSystem.Controllers
             if (!await UserHasAccessToGrid(row.GridId, userId))
                 return Forbid();
 
-            // Only update what's necessary
-            row.Values = updatedRowDto.Values ?? row.Values; // Keep existing if null
+            row.Values = updatedRowDto.Values ?? row.Values;
             row.Status = updatedRowDto.Status ?? row.Status;
 
             try
             {
                 await _context.SaveChangesAsync();
-                return Ok(new RowDto { // Return the updated row
+                return Ok(new RowDto {
                     RowId = row.RowId,
                     GridId = row.GridId,
                     Values = row.Values,
@@ -283,7 +281,6 @@ namespace DataGridSystem.Controllers
             if (dataGrid.Owner.UserName != userIdClaim && !User.IsInRole("Administrator"))
                 return Forbid();
 
-            // Delete selected rows
             var rowsToDelete = dataGrid.Rows.Where(r => rowIds.Contains(r.RowId)).ToList();
             _context.Rows.RemoveRange(rowsToDelete);
 
@@ -293,109 +290,86 @@ namespace DataGridSystem.Controllers
 
         // Batch Operations
         [HttpPost("{gridId}/batch")]
-        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> CreateBatchRows(int gridId, [FromBody] List<CreateRowDto> rowDtos)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!await UserHasAccessToGrid(gridId, userId))
-                return Forbid();
-
-            // Validate import data
-            var validationResult = await ValidateImportData(gridId, rowDtos);
-            if (validationResult != null) return validationResult;
-
             try 
             {
+                Console.WriteLine($"Received {rowDtos?.Count ?? 0} rows for grid {gridId}");
+                
                 var newRows = new List<Row>();
                 foreach (var rowDto in rowDtos)
                 {
+                    var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["Created At"] = DateTime.UtcNow.ToString("o"),
+                        ["Description"] = rowDto.Values.TryGetValue("Description", out var desc) ? desc?.ToString() ?? "" : "",
+                        ["Status"] = rowDto.Values.TryGetValue("Status", out var status) && !string.IsNullOrWhiteSpace(status)
+                        ? status
+                        : rowDto.Status ?? "ToDo",
+                        ["Notes"] = rowDto.Values.TryGetValue("Notes", out var notes) ? notes?.ToString() ?? "" : "",
+                        ["Due Date"] = rowDto.Values.TryGetValue("Due Date", out var dueDate) ? dueDate?.ToString() ?? "" : "",
+                        ["Teams"] = rowDto.Values.TryGetValue("Teams", out var teams) ? teams?.ToString() ?? "" : ""
+                    };
+
                     var newRow = new Row
                     {
                         GridId = gridId,
-                        Values = rowDto.Values,
-                        Status = rowDto.Status ?? "ToDo",
-                        CreatedAt = DateTime.UtcNow
+                        Values = values,
+                        Status = values["Status"],
+                        CreatedAt = DateTime.Parse(values["Created At"])
                     };
+
                     newRows.Add(newRow);
                 }
 
                 await _context.Rows.AddRangeAsync(newRows);
                 await _context.SaveChangesAsync();
 
-                return Ok(new {
-                    message = $"{newRows.Count} rows imported successfully",
-                    importedRows = newRows.Count
-                });
+                return Ok(newRows.Select(r => new {
+                    rowId = r.RowId,
+                    gridId = r.GridId,
+                    values = r.Values,
+                    status = r.Status,
+                    createdAt = r.CreatedAt
+                }).ToList());
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error during import: {ex}");
                 return StatusCode(500, $"Error importing rows: {ex.Message}");
             }
         }
 
-private async Task<IActionResult> ValidateImportData(int gridId, List<CreateRowDto> rows)
-{
-    if (rows == null || !rows.Any())
-        return BadRequest("No rows provided for import");
-
-    var columns = await _context.Columns
-        .Where(c => c.GridId == gridId)
-        .ToListAsync();
-
-    if (!columns.Any())
-        return BadRequest("Grid has no columns defined");
-
-    var requiredColumns = columns
-        .Where(c => c.IsRequired)
-        .Select(c => c.Name)
-        .ToList();
-
-    var allColumnNames = columns.Select(c => c.Name).ToList();
-
-    for (int i = 0; i < rows.Count; i++)
-    {
-        var row = rows[i];
-        var rowNumber = i + 1;
-
-        // Check for required columns
-        foreach (var requiredCol in requiredColumns)
+        private async Task<IActionResult> ValidateImportData(int gridId, List<CreateRowDto> rows)
         {
-            if (!row.Values.ContainsKey(requiredCol))
+            if (rows == null || !rows.Any())
+                return BadRequest("No rows provided for import");
+
+            var requiredColumns = new List<string> { "Description", "Status" };
+            
+            for (int i = 0; i < rows.Count; i++)
             {
-                return BadRequest($"Row {rowNumber}: Missing required column '{requiredCol}'");
+                var row = rows[i];
+                
+                foreach (var col in requiredColumns)
+                {
+                    if (!row.Values.ContainsKey(col) || string.IsNullOrWhiteSpace(row.Values[col]))
+                    {
+                        return BadRequest($"Row {i+1}: Missing required value for '{col}'");
+                    }
+                }
+
+                if (row.Values.ContainsKey("Due Date") && !string.IsNullOrEmpty(row.Values["Due Date"]))
+                {
+                    if (!DateTime.TryParse(row.Values["Due Date"], out _))
+                    {
+                        return BadRequest($"Row {i+1}: Invalid date format for 'Due Date'");
+                    }
+                }
             }
 
-            if (string.IsNullOrWhiteSpace(row.Values[requiredCol]))
-            {
-                return BadRequest($"Row {rowNumber}: Required column '{requiredCol}' cannot be empty");
-            }
+            return null;
         }
-
-        // Validate all provided columns exist
-        foreach (var columnName in row.Values.Keys)
-        {
-            if (!allColumnNames.Contains(columnName))
-            {
-                return BadRequest($"Row {rowNumber}: Column '{columnName}' does not exist in grid");
-            }
-        }
-
-        // Validate data types
-        foreach (var kvp in row.Values)
-        {
-            var column = columns.First(c => c.Name == kvp.Key);
-            if (!ValidateColumnDataType(kvp.Value, column.DataType, column, out string errorMessage))
-            {
-                return BadRequest($"Row {rowNumber}: {errorMessage}");
-            }
-        }
-    }
-
-    return null;
-}
 
         [HttpDelete("{gridId}/batch")]
         [Authorize(Roles = "Administrator")]

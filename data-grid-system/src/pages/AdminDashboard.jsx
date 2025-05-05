@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getGrids, createGrid, deleteGrid } from '../services/DataGridService';
 import { 
-  Grid, Paper, Typography, List, ListItem, TextField, Button,
+  Paper, Typography, List, ListItem, TextField, Button,
   Dialog, DialogTitle, DialogContent, DialogActions, FormControlLabel,
-  Checkbox, Chip, Box, CircularProgress, Snackbar, Alert
+  Checkbox, Chip, CircularProgress, Snackbar, Alert
 } from '@mui/material';
 import TaskTable from '../components/TaskTable';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -17,12 +17,12 @@ import logo from '../assets/imgs/centaurea.jpg';
 const AdminDashboard = () => {
   const { user, logout: handleLogout } = useAuth();
   const [grids, setGrids] = useState([]);
+  const [grid, setGrid] = useState([]);
+  const [rows, setRows] = useState([]);
   const [selectedGrid, setSelectedGrid] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  
-  // Create dialog state
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [newGrid, setNewGrid] = useState({
     name: '',
@@ -30,7 +30,7 @@ const AdminDashboard = () => {
     allowedUsers: []
   });
 
-  // Fetch grids on mount
+  // Fetch grids
   useEffect(() => {
     const loadGrids = async () => {
       try {
@@ -48,22 +48,28 @@ const AdminDashboard = () => {
 
   const handleCreateGrid = async () => {
     try {
-      // Validate required fields
       if (!newGrid.name.trim()) {
         setError('Grid name is required');
         return;
       }
-
+  
+      setRows([]);
+  
       const createdGrid = await createGrid(newGrid);
-      setGrids([...grids, createdGrid]);
+      
+      setGrids(prev => [...prev, createdGrid]);
       setSelectedGrid(createdGrid);
-      setOpenCreateDialog(false);
-      setSuccess('Grid created successfully!');
-      setNewGrid({
-        name: '',
-        isPublic: true,
-        allowedUsers: []
+      setGrid({
+        gridId: createdGrid.gridId,
+        name: createdGrid.name,
+        isPublic: createdGrid.isPublic,
+        rows: []
       });
+  
+      setOpenCreateDialog(false);
+      setNewGrid({ name: '', isPublic: true, allowedUsers: [] });
+      setSuccess('Grid created successfully!');
+  
     } catch (err) {
       setError(err.message || 'Failed to create grid');
     }
@@ -79,7 +85,6 @@ const AdminDashboard = () => {
       console.log('Attempting to delete grid with ID:', gridId);
       await deleteGrid(gridId);
       
-      // Update filter to use gridId instead of id
       setGrids(prevGrids => prevGrids.filter(g => g.gridId !== gridId));
       
       if (selectedGrid?.gridId === gridId) {

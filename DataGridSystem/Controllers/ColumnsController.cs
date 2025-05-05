@@ -57,7 +57,6 @@ namespace DataGridSystem.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Validate column type data
             if (!ValidateColumnType(column, out string validationError))
             {
                 return BadRequest(new { message = validationError });
@@ -146,7 +145,6 @@ namespace DataGridSystem.Controllers
                 return false;
             }
 
-            // Validate pattern if provided
             if (!string.IsNullOrEmpty(column.ValidationPattern))
             {
                 try
@@ -160,7 +158,6 @@ namespace DataGridSystem.Controllers
                 }
             }
 
-            // Validate options for select types
             if ((column.DataType == "SingleSelect" || column.DataType == "MultiSelect") && 
                 (column.Options == null || !column.Options.Any()))
             {
@@ -168,7 +165,6 @@ namespace DataGridSystem.Controllers
                 return false;
             }
 
-            // Validate external collection URL
             if (column.DataType == "ExternalCollection" && 
                 string.IsNullOrEmpty(column.ExternalCollectionUrl))
             {

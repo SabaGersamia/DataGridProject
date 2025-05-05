@@ -62,7 +62,6 @@ namespace DataGridSystem.Controllers
 
             var dataGridDTOs = dataGrids.Adapt<List<DataGridDto>>();
 
-            // Add AllowedUsers to each DTO
             foreach (var dto in dataGridDTOs)
             {
                 dto.AllowedUsers = await _context.DataGridPermissions
@@ -112,7 +111,7 @@ namespace DataGridSystem.Controllers
             return Forbid();
         }
 
-              // POST: api/DataGrids
+        // POST: api/DataGrids
         [HttpPost]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> CreateDataGrid([FromBody] DataGridDto dataGridDto)
@@ -193,11 +192,9 @@ namespace DataGridSystem.Controllers
             if (dataGrid.Owner.UserName != userIdClaim && !User.IsInRole("Administrator"))
                 return Forbid();
 
-            // Update grid details
             dataGrid.Name = dataGridDto.Name ?? dataGrid.Name;
             dataGrid.IsPublic = dataGridDto.IsPublic;
 
-            // Update existing rows
             if (dataGridDto.Rows != null)
             {
                 foreach (var rowDto in dataGridDto.Rows)
@@ -210,7 +207,6 @@ namespace DataGridSystem.Controllers
                 }
             }
 
-            // Update existing columns
             if (dataGridDto.Columns != null)
             {
                 foreach (var columnDto in dataGridDto.Columns)
@@ -254,7 +250,7 @@ namespace DataGridSystem.Controllers
 
             if (dataGrid.Owner == null || (dataGrid.Owner.Id != userIdClaim && !User.IsInRole("Administrator")))
             {
-                return Forbid(); // Only owner or admin can delete
+                return Forbid();
             }
 
             _context.DataGrids.Remove(dataGrid);

@@ -43,10 +43,16 @@ const ExcelImportModal = ({ gridId, open, onClose, onImportSuccess }) => {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
         
-        // Show first 5 rows for preview
-        setPreviewData(jsonData.slice(0, 5));
+        const preview = jsonData.slice(0, 5).map(row => ({
+          values: Object.entries(row).reduce((acc, [key, value]) => {
+            acc[key] = value !== null && value !== undefined ? value : '';
+            return acc;
+          }, {})
+        }));
+        
+        setPreviewData(preview);
       } catch (err) {
         setError('Failed to parse Excel file');
         console.error(err);
@@ -55,47 +61,96 @@ const ExcelImportModal = ({ gridId, open, onClose, onImportSuccess }) => {
     reader.readAsArrayBuffer(file);
   };
 
+  const createBatchRowsWithTimeout = async (gridId, data) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+  
+    try {
+      const response = await createBatchRows(gridId, data, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      if (!response || !Array.isArray(response)) {
+        throw new Error('Invalid response format from server');
+      }
+      
+      return response;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
+    }
+  };
+  
+  
   const handleImport = async () => {
     if (!file || !gridId) return;
     
     setIsLoading(true);
     setError(null);
-
+  
     try {
       const reader = new FileReader();
+      
       reader.onload = async (e) => {
         try {
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-          const rowsToImport = jsonData.map(row => {
-            const values = {};
-            Object.entries(row).forEach(([key, value]) => {
-              values[key] = value !== null && value !== undefined ? value.toString() : '';
-            });
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { raw: false });
+  
+          // Excel data
+          const rowsToImport = jsonData
+          .filter(row => row["Description"])
+          .map(row => {
+            const statusMap = {
+              "to do": "ToDo",
+              "in progress": "In Progress", 
+              "finished": "Finished"
+            };
             
+            const rawStatus = String(row["Status"] || "To Do").toLowerCase();
+            const status = statusMap[rawStatus] || "ToDo";
+
+            const values = {
+              "Created At": new Date().toISOString(),
+              "Description": String(row["Description"] || ""),
+              "Status": status,
+              "Notes": String(row["Notes"] || ""),
+              "Due Date": row["Due Date"] ? new Date(row["Due Date"]).toISOString() : "",
+              "Teams": String(row["Teams"] || "")
+            };
+
             return {
               values,
-              status: "ToDo"
+              status: values["Status"]
             };
           });
-
-          await createBatchRows(gridId, rowsToImport);
+          console.log('Final payload:', JSON.stringify(rowsToImport, null, 2));
           
-          onImportSuccess();
+          const response = await createBatchRowsWithTimeout(gridId, rowsToImport);
+          console.log('Import response:', response);
+  
+          if (!response || !Array.isArray(response)) {
+            throw new Error('Invalid response format from server');
+          }
+  
+          onImportSuccess(response);
           onClose();
         } catch (err) {
+          console.error("Import processing error:", err);
           setError(`Import failed: ${err.message}`);
-          console.error(err);
         } finally {
           setIsLoading(false);
         }
       };
+      
+      reader.onerror = () => {
+        throw new Error('Failed to read file');
+      };
+      
       reader.readAsArrayBuffer(file);
     } catch (err) {
-      setError(`Import failed: ${err.message}`);
+      console.error("File handling error:", err);
+      setError(`File error: ${err.message}`);
       setIsLoading(false);
     }
   };
@@ -118,22 +173,23 @@ const ExcelImportModal = ({ gridId, open, onClose, onImportSuccess }) => {
           <div style={{ margin: '16px 0', maxHeight: '200px', overflow: 'auto' }}>
             <Typography variant="subtitle2">Preview:</Typography>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {Object.keys(previewData[0]?.values || {}).map((header) => (
+                    <th key={header} style={{ border: '1px solid #ddd', padding: '4px', textAlign: 'left' }}>
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
               <tbody>
                 {previewData.map((row, i) => (
                   <tr key={i}>
-                    {Array.isArray(row) ? (
-                      row.map((cell, j) => (
-                        <td key={j} style={{ border: '1px solid #ddd', padding: '4px' }}>
-                          {cell}
-                        </td>
-                      ))
-                    ) : (
-                      Object.values(row).map((value, j) => (
-                        <td key={j} style={{ border: '1px solid #ddd', padding: '4px' }}>
-                          {value}
-                        </td>
-                      ))
-                    )}
+                    {Object.values(row.values).map((value, j) => (
+                      <td key={j} style={{ border: '1px solid #ddd', padding: '4px' }}>
+                        {value === null || value === undefined ? '' : String(value)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>

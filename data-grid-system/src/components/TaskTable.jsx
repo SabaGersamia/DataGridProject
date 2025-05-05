@@ -24,7 +24,6 @@ import dayjs from "dayjs";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from '@mui/icons-material/Delete';
 import UploadIcon from '@mui/icons-material/Upload';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import { 
   updateRow, 
   createRow, 
@@ -52,35 +51,40 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [loading, setLoading] = useState(false);
   const [batchProcessing, setBatchProcessing] = useState(false);
-  const statusOptions = ["ToDo", "In progress", "Finished"];
+  const statusOptions = ["ToDo", "In Progress", "Finished"];
   const [fields, setFields] = useState(defaultFields);
   const [anchorEl, setAnchorEl] = useState(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
   const loadData = async () => {
-    if (!grid?.gridId) return;
-
+    if (!grid?.gridId) {
+      setRows([]);
+      return;
+    }
+  
     try {
       setLoading(true);
+      setRows([]);
+      
       const response = await getRows(grid.gridId);
-
+      
       const normalizedRows = response.map(row => ({
         id: row.rowId,
         rowId: row.rowId,
         gridId: row.gridId,
-        status: row.status || "ToDo",
-        createdAt: row.createdAt,
-        ...row.values,
+        status: row.status || row.values?.Status || "ToDo",
+        createdAt: row.createdAt || row.values?.["Created At"] || '',
+        description: row.values?.["Description"] || '',
+        notes: row.values?.["Notes"] || '',
+        dueDate: row.values?.["Due Date"] || '',
+        teams: row.values?.["Teams"] || '',
         values: row.values || {}
       }));
-
+  
       setRows(normalizedRows);
     } catch (error) {
-      console.error("Failed to load rows:", {
-        gridId: grid.gridId,
-        error: error.response?.data || error.message
-      });
-
+      console.error("Failed to load rows:", error);
+      setRows([]);
       if (error.response?.status !== 403) {
         alert(`Failed to refresh data: ${error.message}`);
       }
@@ -90,8 +94,10 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
   };
 
   useEffect(() => {
-    loadData();
-  }, [grid?.gridId]);
+    return () => {
+      setRows([]);
+    };
+  }, []);
 
   const handleInputChange = async (e, rowIndex, fieldKey) => {
     const newValue = e.target.value;
@@ -243,19 +249,6 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
     }
   };
 
-  const handleManualPaste = async () => {
-    try {
-      const clipboardData = await navigator.clipboard.readText();
-      const pasteEvent = {
-        preventDefault: () => {},
-        clipboardData: { getData: () => clipboardData }
-      };
-      await handlePaste(pasteEvent);
-    } catch (error) {
-      alert(`Failed to read clipboard: ${error.message}`);
-    }
-  };
-
   const handleDateChange = (date, rowIndex, fieldKey) => {
     const formattedDate = date ? dayjs(date).format("YYYY-MM-DD") : null;
     const updatedRows = [...rows];
@@ -339,18 +332,43 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
             variant="contained" 
             onClick={() => setImportModalOpen(true)}
             startIcon={<UploadIcon />}
+            disabled={!grid?.gridId}
           >
             Import Data
           </Button>
 
           <ExcelImportModal
-            gridId={grid?.gridId}
-            open={importModalOpen}
-            onClose={() => setImportModalOpen(false)}
-            onImportSuccess={() => {
+          gridId={grid?.gridId}
+          open={importModalOpen}
+          onClose={() => setImportModalOpen(false)}
+          onImportSuccess={(importedRows) => {
+            try {
+              const newRows = importedRows.map(row => ({
+                id: row.rowId,
+                rowId: row.rowId,
+                gridId: row.gridId,
+                status: row.status || row.values?.Status || "ToDo",
+                createdAt: row.createdAt || row.values?.["Created At"] || '',
+                description: row.values?.["Description"] || '',
+                notes: row.values?.["Notes"] || '',
+                dueDate: row.values?.["Due Date"] || '',
+                teams: row.values?.["Teams"] || '',
+                values: row.values || {}
+              }));
+
+              setRows(prev => {
+                const updatedRows = [...prev, ...newRows];
+                localStorage.setItem(`grid-${grid.gridId}-rows`, JSON.stringify(updatedRows));
+                return updatedRows;
+              });
+              
+              alert(`${newRows.length} rows imported successfully!`);
+            } catch (error) {
+              console.error('Import processing error:', error);
               loadData();
-            }}
-          />
+            }
+          }}
+        />
           <Button
             variant="outlined"
             color="error"
