@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getGrids, createGrid, deleteGrid } from '../services/DataGridService';
 import { 
@@ -16,6 +16,7 @@ import logo from '../assets/imgs/centaurea.jpg';
 
 const AdminDashboard = () => {
   const { user, logout: handleLogout } = useAuth();
+  const navigate = useNavigate();
   const [grids, setGrids] = useState([]);
   const [grid, setGrid] = useState([]);
   const [rows, setRows] = useState([]);
@@ -57,7 +58,9 @@ const AdminDashboard = () => {
   
       const createdGrid = await createGrid(newGrid);
       
-      setGrids(prev => [...prev, createdGrid]);
+      const updatedGrids = await getGrids();
+      setGrids(updatedGrids);
+      
       setSelectedGrid(createdGrid);
       setGrid({
         gridId: createdGrid.gridId,
@@ -70,8 +73,11 @@ const AdminDashboard = () => {
       setNewGrid({ name: '', isPublic: true, allowedUsers: [] });
       setSuccess('Grid created successfully!');
   
+      setTimeout(() => setSuccess(''), 3000);
+  
     } catch (err) {
       setError(err.message || 'Failed to create grid');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
@@ -111,6 +117,11 @@ const AdminDashboard = () => {
       console.error("Error refreshing grid:", err.message);
     }
   };
+
+  const logoutAndRedirect = () => {
+    handleLogout();
+    navigate("/");
+  };
   
 
   return (
@@ -133,7 +144,7 @@ const AdminDashboard = () => {
           {user ? (
             <>
               <span className="nav-link">Hi, {user.username}</span>
-              <button className="logout-button" onClick={handleLogout}>Logout</button>
+              <button className="logout-button" onClick={logoutAndRedirect}>Logout</button>
             </>
           ) : (
             <Link to="/login" className="nav-link login-button">Login</Link>

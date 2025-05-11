@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getGrids } from '../services/DataGridService';
 import { useAuth } from '../context/AuthContext';
+import { 
+  Paper, Typography, List, ListItem, 
+  CircularProgress, Snackbar, Alert, Chip
+} from '@mui/material';
+import TaskTable from '../components/TaskTable';
 import '../assets/css/userDashboard.css';
 import logo from '../assets/imgs/centaurea.jpg';
 
@@ -9,42 +14,71 @@ const UserDashboard = () => {
   const { user, logout: handleLogout } = useAuth();
   const navigate = useNavigate();
   const [grids, setGrids] = useState([]);
+  const [selectedGrid, setSelectedGrid] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedGrid, setSelectedGrid] = useState(null);
+  const [success, setSuccess] = useState(null);
 
+  // Fetch only public grids or grids where user is allowed
   useEffect(() => {
-    const fetchGrids = async () => {
+    const loadGrids = async () => {
       try {
-        const data = await getGrids();
-        if (user?.role === "Administrator") {
-          setGrids(data);
-        } else {
-          setGrids(data.filter(grid => grid.isPublic || grid.ownerId === user?.id));
-        }
+        if (!user) return; // Wait until user is loaded
+        
+        const allGrids = await getGrids();
+        // Filter grids based on public status or allowed users
+        const filteredGrids = allGrids.filter(grid => 
+          grid.isPublic || 
+          (grid.allowedUsers && grid.allowedUsers.includes(user.username)) ||
+          grid.ownerId === user.id
+        );
+        
+        setGrids(filteredGrids);
+        if (filteredGrids.length > 0) setSelectedGrid(filteredGrids[0]);
       } catch (err) {
-        setError('Failed to fetch data grids. Please try again later.');
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchGrids();
-  }, [user]);
+    
+    loadGrids();
+  }, [user]); // Add user as dependency
+
+  const refreshSelectedGrid = async () => {
+    if (!selectedGrid || !user) return;
+    try {
+      const updatedGrids = await getGrids();
+      const filteredGrids = updatedGrids.filter(grid => 
+        grid.isPublic || 
+        (grid.allowedUsers && grid.allowedUsers.includes(user.username)) ||
+        grid.ownerId === user.id
+      );
+      setGrids(filteredGrids);
+  
+      const refreshedGrid = filteredGrids.find(g => g.id === selectedGrid.id);
+      setSelectedGrid(refreshedGrid || null);
+    } catch (err) {
+      console.error("Error refreshing grid:", err.message);
+    }
+  };
 
   const logoutAndRedirect = () => {
     handleLogout();
     navigate("/");
   };
 
-  const handleViewGrid = (grid) => {
-    console.log("Opening grid:", grid);
-    setSelectedGrid(grid);
-    setViewModalOpen(true);
-  };
+  if (!user) {
+    return (
+      <div className="user-dashboard">
+        <p>Loading user information...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="user-dashboard">
+      {/* Header */}
       <header className="header">
         <div className="logo">
           <Link to="/">
@@ -59,75 +93,82 @@ const UserDashboard = () => {
           </nav>
         </div>
         <div className="user-actions">
-          {user ? (
-            <>
-              <span className="nav-link">Hi, {user.username} ({user.role})</span>
-              <button className="logout-button" onClick={logoutAndRedirect}>Logout</button>
-            </>
-          ) : (
-            <Link to="/login" className="nav-link login-button">Login</Link>
-          )}
+          <span className="nav-link">Hi, {user.username} ({user.role})</span>
+          <button className="logout-button" onClick={logoutAndRedirect}>Logout</button>
         </div>  
       </header>
 
+      {/* Main Dashboard Layout */}
       <main className="dashboard-main">
-        <div className="dashboard-content">
-          <h1>Data Grids</h1>
+        {/* Left Panel - Data Grids */}
+        <div className="left-panel">
+          <Paper className="panel-box">
+            <div className="panel-header">
+              <h2>Available Data Grids</h2>
+            </div>
 
-          <div className="data-grids-list">
             {loading ? (
-              <p>Loading grids...</p>
+              <CircularProgress />
             ) : error ? (
-              <p className="error-message">{error}</p>
+              <Alert severity="error">{error}</Alert>
             ) : grids.length > 0 ? (
-              <ul>
+              <List>
                 {grids.map((grid) => (
-                  <li key={grid.id}>
-                    <div className="grid-item">
-                      <span>{grid.name}</span>
-                      <button className="view-grid-button" onClick={() => handleViewGrid(grid)}>View</button>
+                  <ListItem 
+                    key={grid.id} 
+                    className={`grid-item ${selectedGrid?.id === grid.id ? 'selected' : ''}`}
+                    onClick={() => setSelectedGrid(grid)}
+                  >
+                    <div className="grid-info">
+                      <span className="grid-name">{grid.name}</span>
+                      <Chip 
+                        label={grid.isPublic ? 'Public' : 'Private'} 
+                        size="small" 
+                        color={grid.isPublic ? 'success' : 'default'}
+                        className="privacy-chip"
+                      />
                     </div>
-                  </li>
+                  </ListItem>
                 ))}
-              </ul>
+              </List>
             ) : (
-              <p>No grids available.</p>
+              <Typography>No grids available</Typography>
             )}
-          </div>
+          </Paper>
+        </div>
+
+        {/* Middle Panel - Task Table */}
+        <div className="middle-panel">
+          <Paper className="panel-box">
+            <h2>{selectedGrid ? `${selectedGrid.name}` : 'Select a Data Grid'}</h2>
+            {selectedGrid ? (
+              <TaskTable 
+                grid={selectedGrid} 
+                refreshGrid={refreshSelectedGrid} 
+                isAdmin={user.role === "Administrator"}
+              />
+            ) : (
+              <Typography>Please select a grid</Typography>
+            )}
+          </Paper>
         </div>
       </main>
 
-      {viewModalOpen && selectedGrid && (
-        <div className="modal-overlay" onClick={() => setViewModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Grid Details</h2>
-            <p><strong>Name:</strong> {selectedGrid?.name}</p>
-
-            <div className="grid-table-container">
-              <table className="grid-table">
-                <thead>
-                  <tr>
-                    {selectedGrid?.columns?.map((col) => (
-                      <th key={col.id}>{col.name}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedGrid?.rows?.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {row.values.map((value, colIndex) => (
-                        <td key={colIndex}>{value}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <button className="close-modal" onClick={() => setViewModalOpen(false)}>Close</button>
-          </div>
-        </div>
-      )}
+      {/* Notifications */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
+      </Snackbar>
+      <Snackbar
+        open={!!success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(null)}
+      >
+        <Alert severity="success" onClose={() => setSuccess(null)}>{success}</Alert>
+      </Snackbar>
     </div>
   );
 };
