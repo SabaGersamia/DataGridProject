@@ -120,9 +120,20 @@ const TaskTable = ({ grid, onRowCreated, onRowUpdated, onRowDeleted }) => {
       const dataRows = rowsToCopy.map(row => {
         return visibleFields.map(field => {
           let value = row[field.key] || '';
+          
+          // Handle date fields specifically
           if (field.type === 'date' && value) {
-            value = formatDate(value);
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              // Format as YYYY-MM-DD (ISO format) to prevent misinterpretation
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              value = `${year}-${month}-${day}`;
+            }
           }
+          
+          // Escape tabs and newlines in all values
           return String(value)
             .replace(/\t/g, '\\t')
             .replace(/\n/g, '\\n');
